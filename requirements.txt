@@ -1,0 +1,16 @@
+streamlit==1.40.0
+SQLAlchemy==2.0.35
+bcrypt==4.2.0
+pandas==2.3.3
+plotly==5.24.0
+python-dotenv==1.0.1
+openpyxl==3.1.5
+reportlab==4.2.2
+
+# تثبيت صريح لهذين لتفادي مشاكل بناء على بايثون 3.13/3.14 (نسخ حديثة جدًا):
+pillow==11.3.0
+pyarrow==22.0.0
+
+# اختياري: فعّل السطر التالي فقط إذا قررت لاحقًا استخدام PostgreSQL بدل SQLite
+# (مثلاً عند النشر أونلاين على Neon/Railway/Supabase)
+# psycopg2-binary==2.9.9
