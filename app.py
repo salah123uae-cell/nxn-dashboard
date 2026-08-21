@@ -2,12 +2,15 @@ import streamlit as st
 from auth import login, logout, current_user, ROLE_LABELS_AR, hash_password
 from database import init_db, get_session
 from models import User, Credential, Branch, ChecklistVersion, AuditSection, AuditQuestion
+from branding import render_logo, apply_theme
 
 st.set_page_config(
     page_title="نظام NXN لإدارة جودة الفروع",
     page_icon="✅",
     layout="wide",
 )
+apply_theme()
+render_logo()
 
 # ---------- التأكد من وجود الجداول، وتهيئة أولى إن لم يوجد أي مستخدم ----------
 init_db()
@@ -79,15 +82,6 @@ if not _has_users:
                 st.success("🎉 تم إنشاء الحساب بنجاح! سجّل الدخول الآن من الأسفل.")
                 st.rerun()
     st.stop()
-
-st.markdown(
-    """
-    <style>
-    .block-container { direction: rtl; }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
 
 st.title("✅ نظام NXN لإدارة جودة الفروع")
 st.caption("النسخة البايثونية — Streamlit + PostgreSQL")
