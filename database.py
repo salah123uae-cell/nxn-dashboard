@@ -75,4 +75,3 @@ def get_session():
         raise
     finally:
         session.close()
-        fix database path
