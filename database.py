@@ -5,6 +5,7 @@
 يكفي تضبط DATABASE_URL في ملف .env أو st.secrets.
 """
 import os
+import tempfile
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -29,8 +30,27 @@ def _get_setting(key: str, default: str = "") -> str:
     return default
 
 
-# افتراضيًا: ملف SQLite محلي باسم nxn_quality.db بجانب المشروع (صفر إعدادات)
-DATABASE_URL = _get_setting("DATABASE_URL", "sqlite:///nxn_quality.db")
+def _default_sqlite_path() -> str:
+    """
+    يبحث عن أول مجلد قابل للكتابة فعليًا (مجلد المشروع، ثم المجلد الشخصي،
+    ثم المجلد المؤقت للنظام). هذا ضروري لأن بعض بيئات الاستضافة السحابية
+    (مثل Streamlit Cloud) تكون فيها مجلد المشروع نفسه للقراءة فقط.
+    """
+    candidates = [os.getcwd(), os.path.expanduser("~"), tempfile.gettempdir()]
+    for d in candidates:
+        try:
+            test_file = os.path.join(d, ".write_test_tmp")
+            with open(test_file, "w") as f:
+                f.write("x")
+            os.remove(test_file)
+            return os.path.join(d, "nxn_quality.db").replace("\\", "/")
+        except Exception:
+            continue
+    return os.path.join(tempfile.gettempdir(), "nxn_quality.db").replace("\\", "/")
+
+
+# افتراضيًا: ملف SQLite في أول مجلد قابل للكتابة (صفر إعدادات، ويعمل محليًا وسحابيًا)
+DATABASE_URL = _get_setting("DATABASE_URL", f"sqlite:///{_default_sqlite_path()}")
 
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
@@ -55,3 +75,4 @@ def get_session():
         raise
     finally:
         session.close()
+        fix database path
