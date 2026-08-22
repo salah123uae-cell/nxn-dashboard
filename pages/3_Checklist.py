@@ -1,11 +1,15 @@
 import streamlit as st
+from branding import render_logo, apply_theme
 import pandas as pd
 
 from auth import require_login, current_user, log_action
 from database import get_session
 from models import ChecklistVersion, AuditSection, AuditQuestion
+from data_cache import clear_reference_cache
 
 st.set_page_config(page_title="قوائم الفحص", page_icon="📋", layout="wide")
+apply_theme()
+render_logo(size="small")
 require_login()
 user = current_user()
 can_edit = user["role"] in ("owner", "manager")
@@ -59,6 +63,7 @@ with tab2:
                     s.add(AuditSection(code=code, name_ar=name_ar, name_en=name_en,
                                        weight=weight, sort_order=sort_order, active=True))
                     log_action(user["email"], "create", "audit_section", code)
+                clear_reference_cache()
                 st.success("تم الحفظ ✅")
                 st.rerun()
 
@@ -92,5 +97,6 @@ with tab3:
                         weight=weight, checklist_version=version, sort_order=0,
                     ))
                     log_action(user["email"], "create", "audit_question", code)
+                clear_reference_cache()
                 st.success("تم الحفظ ✅")
                 st.rerun()
