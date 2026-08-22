@@ -21,7 +21,7 @@ if "db_initialized" not in st.session_state:
     st.session_state["db_initialized"] = True
 
 with get_session() as _s:
-    _has_users = _s.query(User).count() > 0
+    _has_users = _s.query(User.id).first() is not None
 
 if not _has_users:
     st.title(t("app_title"))
