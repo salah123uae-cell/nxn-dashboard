@@ -12,10 +12,10 @@ st.set_page_config(page_title="Audit Log | سجل النشاط", page_icon="📜
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
+language_switcher()
 require_role("owner", "manager")
 render_logout_sidebar()
 
-language_switcher()
 
 st.title(t("audit_log_title"))
 
