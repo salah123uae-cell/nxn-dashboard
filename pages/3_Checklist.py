@@ -18,8 +18,7 @@ render_logout_sidebar()
 user = current_user()
 can_edit = user["role"] in ("owner", "manager")
 
-with st.sidebar:
-    language_switcher()
+language_switcher()
 
 st.title(t("checklist_title"))
 
