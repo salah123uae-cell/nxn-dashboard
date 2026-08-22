@@ -3,11 +3,11 @@ from branding import render_logo, apply_theme
 import pandas as pd
 from datetime import datetime
 
-from auth import require_login, current_user, log_action, can_manage_branch, render_logout_sidebar
+from auth import require_login, current_user, log_action, render_logout_sidebar
 from database import get_session
 from models import Audit, AuditAnswer, AuditQuestion, Branch, CorrectiveAction
 from utils import generate_reference, calculate_audit_score, score_badge, export_audits_to_excel
-from data_cache import get_branches_cached, get_active_branches_cached, get_questions_for_version_cached, get_sections_cached, clear_reference_cache
+from data_cache import get_branches_by_id_cached, get_active_branches_cached, get_questions_for_version_cached, get_sections_cached
 from i18n import t, language_switcher, get_lang
 
 st.set_page_config(page_title="Audits | التدقيقات", page_icon="🔍", layout="wide")
@@ -27,7 +27,7 @@ tab_list, tab_new, tab_conduct = st.tabs([t("tab_audit_list"), t("tab_new_audit"
 
 # ---------- تبويب: قائمة التدقيقات ----------
 with tab_list:
-    branches_by_id = {b["id"]: b for b in get_branches_cached()}
+    branches_by_id = get_branches_by_id_cached()
     with get_session() as s:
         audits = s.query(Audit).order_by(Audit.created_at.desc()).all()
         rows = []
