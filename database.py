@@ -1,15 +1,11 @@
-"""
-إعداد الاتصال بقاعدة البيانات وإنشاء الجلسات (Sessions).
-افتراضيًا يستخدم SQLite (ملف واحد بسيط، بدون أي تثبيت أو إعداد) — مناسب للتشغيل
-المحلي المباشر بدون تعقيد. إذا احتجت PostgreSQL لاحقًا (مثلاً عند النشر أونلاين)،
-يكفي تضبط DATABASE_URL في ملف .env أو st.secrets.
-"""
+"""Database connection and transactional session management."""
 import os
 import tempfile
+from contextlib import contextmanager
+
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from contextlib import contextmanager
 
 from models import Base
 
@@ -17,10 +13,9 @@ load_dotenv()
 
 
 def _get_setting(key: str, default: str = "") -> str:
-    """يقرأ الإعداد من متغيرات البيئة أولًا، ثم من st.secrets إن وُجد (نشر سحابي)."""
-    val = os.getenv(key)
-    if val:
-        return val
+    value = os.getenv(key)
+    if value:
+        return value
     try:
         import streamlit as st
         if key in st.secrets:
@@ -31,51 +26,47 @@ def _get_setting(key: str, default: str = "") -> str:
 
 
 def _default_sqlite_path() -> str:
-    """
-    يبحث عن أول مجلد قابل للكتابة فعليًا (مجلد المشروع، ثم المجلد الشخصي،
-    ثم المجلد المؤقت للنظام). هذا ضروري لأن بعض بيئات الاستضافة السحابية
-    (مثل Streamlit Cloud) تكون فيها مجلد المشروع نفسه للقراءة فقط.
-    """
     candidates = [os.getcwd(), os.path.expanduser("~"), tempfile.gettempdir()]
-    for d in candidates:
+    for directory in candidates:
         try:
-            test_file = os.path.join(d, ".write_test_tmp")
-            with open(test_file, "w") as f:
-                f.write("x")
+            test_file = os.path.join(directory, ".write_test_tmp")
+            with open(test_file, "w", encoding="utf-8") as handle:
+                handle.write("x")
             os.remove(test_file)
-            return os.path.join(d, "nxn_quality.db").replace("\\", "/")
+            return os.path.join(directory, "nxn_quality.db").replace("\\", "/")
         except Exception:
             continue
     return os.path.join(tempfile.gettempdir(), "nxn_quality.db").replace("\\", "/")
 
 
-# افتراضيًا: ملف SQLite في أول مجلد قابل للكتابة (صفر إعدادات، ويعمل محليًا وسحابيًا)
-DATABASE_URL = _get_setting("DATABASE_URL", f"sqlite:///{_default_sqlite_path()}")
+APP_ENV = _get_setting("APP_ENV", "development").strip().lower()
+configured_database_url = _get_setting("DATABASE_URL")
 
-# بعض مزوّدي الاستضافة (مثل Neon, Heroku, Railway) يعطون رابطًا يبدأ بـ postgres://
-# لكن SQLAlchemy الحديث (2.x) يشترط postgresql:// — نصحّح الصيغة تلقائيًا هنا.
+if APP_ENV in {"production", "prod"}:
+    if not configured_database_url:
+        raise RuntimeError("DATABASE_URL is required in production; refusing SQLite fallback")
+    if not configured_database_url.startswith(("postgres://", "postgresql://", "postgresql+psycopg://", "postgresql+psycopg2://")):
+        raise RuntimeError("Production DATABASE_URL must use PostgreSQL")
+
+DATABASE_URL = configured_database_url or f"sqlite:///{_default_sqlite_path()}"
 if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
-# نستخدم مكتبة psycopg (الإصدار 3) بدل psycopg2 القديمة، لأنها تدعم أحدث إصدارات
-# بايثون (مثل 3.13/3.14) بعجلات (wheels) جاهزة بدون الحاجة لبناء من المصدر.
-if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+elif DATABASE_URL.startswith("postgresql+psycopg2://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql+psycopg2://", "postgresql+psycopg://", 1)
 
-_connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-
-engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=_connect_args)
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=connect_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
 def init_db():
-    """ينشئ كل الجداول في قاعدة البيانات إن لم تكن موجودة."""
     Base.metadata.create_all(bind=engine)
 
 
 @contextmanager
 def get_session():
-    """مدير سياق (context manager) لإدارة جلسة قاعدة البيانات بأمان."""
     session = SessionLocal()
     try:
         yield session
