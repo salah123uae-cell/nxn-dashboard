@@ -85,8 +85,11 @@ with tab_insights:
     with get_session() as s:
         audits = s.query(Audit).filter(
             Audit.status.in_(["submitted", "reviewed", "closed"])
-        ).order_by(Audit.created_at.desc()).all()
-        branches = {b.id: b for b in s.query(Branch).all()}
+        ).order_by(Audit.created_at.desc()).limit(200).all()
+        branch_ids = {audit.branch_id for audit in audits}
+        branches = {
+            branch.id: branch for branch in s.query(Branch).filter(Branch.id.in_(branch_ids)).all()
+        } if branch_ids else {}
 
     if not audits:
         st.info(t("no_submitted_for_ai"))
@@ -103,7 +106,12 @@ with tab_insights:
                 audit = s.query(Audit).get(audit_id)
                 branch = s.query(Branch).get(audit.branch_id)
                 answers = s.query(AuditAnswer).filter(AuditAnswer.audit_id == audit_id).all()
-                questions = {q.id: q for q in s.query(AuditQuestion).all()}
+                question_ids = [answer.question_id for answer in answers]
+                questions = {
+                    question.id: question for question in s.query(AuditQuestion).filter(
+                        AuditQuestion.id.in_(question_ids)
+                    ).all()
+                } if question_ids else {}
 
                 answers_rows = [{
                     "question": questions[a.question_id].question_ar if a.question_id in questions else "—",
