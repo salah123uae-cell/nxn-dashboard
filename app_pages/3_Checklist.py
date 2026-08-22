@@ -8,8 +8,6 @@ from models import ChecklistVersion, AuditSection, AuditQuestion
 from data_cache import clear_reference_cache
 from i18n import t, language_switcher, get_lang
 
-st.set_page_config(page_title="Checklist | قوائم الفحص", page_icon="📋", layout="wide")
-
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
