@@ -15,8 +15,7 @@ render_logo(size="small")
 require_role("owner", "manager")
 render_logout_sidebar()
 
-with st.sidebar:
-    language_switcher()
+language_switcher()
 
 st.title(t("audit_log_title"))
 
