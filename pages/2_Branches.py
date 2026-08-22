@@ -13,12 +13,12 @@ st.set_page_config(page_title="Branches | الفروع", page_icon="🏢", layou
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
+language_switcher()
 require_login()
 render_logout_sidebar()
 user = current_user()
 can_edit = user["role"] in ("owner", "manager")
 
-language_switcher()
 
 st.title(t("branches_title"))
 
