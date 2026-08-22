@@ -15,8 +15,7 @@ lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo()
 
-with st.sidebar:
-    language_switcher()
+language_switcher()
 
 # ---------- التأكد من وجود الجداول، وتهيئة أولى إن لم يوجد أي مستخدم ----------
 init_db()
