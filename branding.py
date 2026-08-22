@@ -55,10 +55,8 @@ def apply_theme(direction: str = "rtl"):
     st.markdown(
         f"""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Cairo:wght@400;600;700&display=swap');
-
         html, body, [class*="css"] {{
-            font-family: 'Inter', 'Cairo', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, "Noto Sans Arabic", sans-serif;
         }}
         .block-container {{ direction: {direction}; }}
         h1, h2, h3 {{ color: {BRAND_BLUE}; font-weight: 800; }}
