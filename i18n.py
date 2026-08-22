@@ -1,7 +1,7 @@
 """
 وحدة دعم تعدد اللغات (i18n) لكل صفحات النظام — عربي/إنجليزي.
 تحفظ اللغة المختارة في st.session_state وتوفر دالة t(key) للترجمة،
-ودالة language_switcher() لعرض قائمة اختيار اللغة بالشريط الجانبي.
+ودالة language_switcher() لعرض روابط اختيار اللغة بالشريط الجانبي عبر رابط الصفحة.
 """
 import streamlit as st
 
@@ -211,6 +211,13 @@ TRANSLATIONS = {
 
 
 def get_lang() -> str:
+    """يقرأ اللغة من رابط الصفحة (?lang=en) إن وُجد، وإلا من حالة الجلسة، وإلا العربية افتراضيًا."""
+    try:
+        query_lang = st.query_params.get("lang")
+    except Exception:
+        query_lang = None
+    if query_lang in ("ar", "en"):
+        st.session_state["lang"] = query_lang
     return st.session_state.get("lang", "ar")
 
 
@@ -230,16 +237,17 @@ def t(key: str, **kwargs) -> str:
 
 
 def language_switcher():
-    """يعرض قائمة اختيار اللغة بالشريط الجانبي، ويحدّث حالة الجلسة عند التغيير."""
+    """يعرض رابطين لتبديل اللغة بالشريط الجانبي (عربي/إنجليزي) عبر رابط الصفحة مباشرة."""
     current = get_lang()
-    options = {"ar": "العربية", "en": "English"}
-    choice = st.selectbox(
-        t("language_label"),
-        options=list(options.keys()),
-        format_func=lambda k: options[k],
-        index=list(options.keys()).index(current),
-        key="lang_selector",
+    ar_style = "font-weight:700;" if current == "ar" else "opacity:0.55;"
+    en_style = "font-weight:700;" if current == "en" else "opacity:0.55;"
+    st.sidebar.markdown(
+        f"""
+        <div style="text-align:center; padding: 4px 0 8px 0;">
+            <a href="?lang=ar" target="_self" style="text-decoration:none; {ar_style}">العربية</a>
+            &nbsp;|&nbsp;
+            <a href="?lang=en" target="_self" style="text-decoration:none; {en_style}">English</a>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    if choice != current:
-        st.session_state["lang"] = choice
-        st.rerun()
