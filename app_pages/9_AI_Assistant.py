@@ -7,8 +7,6 @@ from models import Audit, Branch, CorrectiveAction, AuditAnswer, AuditQuestion
 from ai_agent import is_ai_configured, summarize_audit, chat_with_assistant, MAX_CHAT_MESSAGES_PER_SESSION
 from i18n import t, language_switcher, get_lang
 
-st.set_page_config(page_title="AI Assistant | المساعد الذكي", page_icon="🤖", layout="wide")
-
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
@@ -22,15 +20,17 @@ st.title(t("ai_title"))
 st.caption(t("ai_caption"))
 
 if not is_ai_configured():
-    st.warning(
-        t("ai_not_configured") + "\n\n"
-        "1. احصل على مفتاح API من https://console.anthropic.com\n"
-        "2. في Streamlit Cloud: **Manage app → Settings → Secrets**، أضف السطر:\n"
-        "```\nANTHROPIC_API_KEY = \"sk-ant-...\"\n```\n"
-        "3. أعد تشغيل التطبيق (**Reboot app**)\n\n"
-        "💡 **للتحكم بالتكلفة**: من نفس صفحة console.anthropic.com، تقدر تضبط "
-        "حد أقصى شهري للإنفاق (Usage limits / Spend limit) عشان ما يتجاوز رصيدك."
-    )
+    if user["role"] == "owner":
+        st.warning(
+            t("ai_not_configured") + "\n\n"
+            + t("ai_setup_step1") + "\n"
+            + t("ai_setup_step2") + "\n"
+            "```\nANTHROPIC_API_KEY = \"sk-ant-...\"\n```\n"
+            + t("ai_setup_step3") + "\n\n"
+            + t("ai_setup_cost_note")
+        )
+    else:
+        st.info(t("ai_not_ready_generic"))
     st.stop()
 
 tab_chat, tab_insights = st.tabs([t("tab_chat"), t("tab_insights")])
@@ -85,11 +85,8 @@ with tab_insights:
     with get_session() as s:
         audits = s.query(Audit).filter(
             Audit.status.in_(["submitted", "reviewed", "closed"])
-        ).order_by(Audit.created_at.desc()).limit(200).all()
-        branch_ids = {audit.branch_id for audit in audits}
-        branches = {
-            branch.id: branch for branch in s.query(Branch).filter(Branch.id.in_(branch_ids)).all()
-        } if branch_ids else {}
+        ).order_by(Audit.created_at.desc()).all()
+        branches = {b.id: b for b in s.query(Branch).all()}
 
     if not audits:
         st.info(t("no_submitted_for_ai"))
@@ -106,12 +103,7 @@ with tab_insights:
                 audit = s.query(Audit).get(audit_id)
                 branch = s.query(Branch).get(audit.branch_id)
                 answers = s.query(AuditAnswer).filter(AuditAnswer.audit_id == audit_id).all()
-                question_ids = [answer.question_id for answer in answers]
-                questions = {
-                    question.id: question for question in s.query(AuditQuestion).filter(
-                        AuditQuestion.id.in_(question_ids)
-                    ).all()
-                } if question_ids else {}
+                questions = {q.id: q for q in s.query(AuditQuestion).all()}
 
                 answers_rows = [{
                     "question": questions[a.question_id].question_ar if a.question_id in questions else "—",
