@@ -1,31 +1,35 @@
 import streamlit as st
+from branding import render_logo, apply_theme
 import pandas as pd
 
 from auth import require_login, current_user
 from database import get_session
 from models import Audit, AuditAnswer, AuditQuestion, Branch
 from utils import export_audit_report_pdf, export_audits_to_excel
+from data_cache import get_branches_cached
 
 st.set_page_config(page_title="التقارير", page_icon="📈", layout="wide")
+apply_theme()
+render_logo(size="small")
 require_login()
 user = current_user()
 
 st.title("📈 التقارير")
 
+branches_by_id = {b["id"]: b for b in get_branches_cached()}
+
 with get_session() as s:
     audits = s.query(Audit).filter(Audit.status.in_(["submitted", "reviewed", "closed"])).order_by(Audit.created_at.desc()).all()
-    branches = {b.id: b for b in s.query(Branch).all()}
 
 if not audits:
     st.info("لا توجد تدقيقات مُرسلة بعد لتوليد تقرير عنها")
 else:
-    options = {f"{a.reference} - {branches[a.branch_id].name_ar if a.branch_id in branches else ''}": a.id for a in audits}
+    options = {f"{a.reference} - {branches_by_id[a.branch_id]['name_ar'] if a.branch_id in branches_by_id else ''}": a.id for a in audits}
     choice = st.selectbox("اختر تدقيقًا لعرض تقريره", list(options.keys()))
     audit_id = options[choice]
 
     with get_session() as s:
         audit = s.query(Audit).get(audit_id)
-        branch = s.query(Branch).get(audit.branch_id)
         answers = s.query(AuditAnswer).filter(AuditAnswer.audit_id == audit_id).all()
         questions = {q.id: q for q in s.query(AuditQuestion).all()}
 
@@ -35,8 +39,9 @@ else:
             "note": a.note,
         } for a in answers]
 
+        branch_info = branches_by_id.get(audit.branch_id)
         audit_info = {
-            "reference": audit.reference, "branch_name": branch.name_ar if branch else "—",
+            "reference": audit.reference, "branch_name": branch_info["name_ar"] if branch_info else "—",
             "auditor_email": audit.auditor_email, "status": audit.status, "score": audit.score,
         }
 
@@ -51,10 +56,9 @@ st.divider()
 st.subheader("📊 تصدير كل التدقيقات")
 with get_session() as s:
     all_audits = s.query(Audit).all()
-    all_branches = {b.id: b for b in s.query(Branch).all()}
     df_all = pd.DataFrame([{
         "المرجع": a.reference,
-        "الفرع": all_branches[a.branch_id].name_ar if a.branch_id in all_branches else "—",
+        "الفرع": branches_by_id[a.branch_id]["name_ar"] if a.branch_id in branches_by_id else "—",
         "المدقق": a.auditor_email, "الحالة": a.status, "النتيجة": a.score,
         "تاريخ الإنشاء": a.created_at,
     } for a in all_audits])
