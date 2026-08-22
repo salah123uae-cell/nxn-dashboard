@@ -1,11 +1,15 @@
 import streamlit as st
+from branding import render_logo, apply_theme
 import pandas as pd
 
 from auth import require_login, current_user, log_action
 from database import get_session
 from models import Branch
+from data_cache import clear_reference_cache
 
 st.set_page_config(page_title="الفروع", page_icon="🏢", layout="wide")
+apply_theme()
+render_logo(size="small")
 require_login()
 user = current_user()
 can_edit = user["role"] in ("owner", "manager")
@@ -50,6 +54,7 @@ if can_edit:
                         s.add(b)
                         s.flush()
                         log_action(user["email"], "create", "branch", b.id, after={"code": code})
+                        clear_reference_cache()
                         st.success("تم إضافة الفرع ✅")
                         st.rerun()
 
@@ -66,6 +71,7 @@ if can_edit:
                 before = {"status": b.status}
                 b.status = new_status
                 log_action(user["email"], "update", "branch", branch_id, before=before, after={"status": new_status})
+            clear_reference_cache()
             st.success("تم التحديث ✅")
             st.rerun()
 else:
