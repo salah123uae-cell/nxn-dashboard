@@ -88,6 +88,20 @@ if not _has_users:
                         ])
                 st.success(t("account_created"))
                 st.rerun()
+
+    st.divider()
+    st.subheader(t("restore_setup_title"))
+    restore_file = st.file_uploader(t("restore_setup_uploader"), type=["json"], key="setup_restore_uploader")
+    if restore_file is not None:
+        if st.button(t("restore_setup_btn"), key="setup_restore_btn"):
+            from backup import import_all_data
+            try:
+                counts = import_all_data(restore_file.getvalue())
+                st.success(f"{t('import_success')} {counts}")
+                st.rerun()
+            except Exception as e:
+                st.error(f"{t('import_error')}: {e}")
+
     st.stop()
 
 st.title(t("app_title"))
