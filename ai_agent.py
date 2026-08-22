@@ -11,6 +11,7 @@ except ImportError:
     anthropic = None
 
 MODEL_NAME = "claude-sonnet-4-5"
+MAX_CHAT_MESSAGES_PER_SESSION = 20  # حد أقصى للرسائل بكل جلسة، لضبط استهلاك الرصيد
 
 
 def _get_api_key() -> str:
@@ -30,7 +31,7 @@ def is_ai_configured() -> bool:
     return bool(_get_api_key()) and anthropic is not None
 
 
-def ask_claude(system_prompt: str, user_prompt: str, max_tokens: int = 1024) -> str:
+def ask_claude(system_prompt: str, user_prompt: str, max_tokens: int = 500) -> str:
     """يرسل طلبًا لنموذج Claude ويرجع الرد النصي. يرمي استثناء عند الفشل."""
     api_key = _get_api_key()
     if not api_key:
@@ -75,7 +76,7 @@ def summarize_audit(audit_info: dict, answers_rows: list) -> str:
 2) أهم نقاط عدم التوافق وأسبابها المحتملة
 3) 2-3 توصيات عملية ومحددة لتحسين النتيجة القادمة
 """
-    return ask_claude(system_prompt, user_prompt, max_tokens=700)
+    return ask_claude(system_prompt, user_prompt, max_tokens=500)
 
 
 def chat_with_assistant(user_message: str, context_summary: str, history: list) -> str:
@@ -89,7 +90,7 @@ def chat_with_assistant(user_message: str, context_summary: str, history: list) 
     )
     convo = "\n".join(
         f"{'المستخدم' if m['role'] == 'user' else 'المساعد'}: {m['content']}"
-        for m in history[-6:]
+        for m in history[-4:]
     )
     user_prompt = f"""معلومات سياقية عن حالة النظام حاليًا:
 {context_summary}
@@ -99,4 +100,4 @@ def chat_with_assistant(user_message: str, context_summary: str, history: list) 
 
 سؤال المستخدم الجديد: {user_message}
 """
-    return ask_claude(system_prompt, user_prompt, max_tokens=800)
+    return ask_claude(system_prompt, user_prompt, max_tokens=500)
