@@ -14,10 +14,8 @@ st.set_page_config(
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo()
-
 language_switcher()
 
-# ---------- التأكد من وجود الجداول (مرة واحدة فقط بكل جلسة، لتفادي الفحص المتكرر) ----------
 if "db_initialized" not in st.session_state:
     init_db()
     st.session_state["db_initialized"] = True
@@ -59,13 +57,13 @@ if not _has_users:
 
                     if s.query(ChecklistVersion).count() == 0:
                         s.add(ChecklistVersion(code="QV1", name_ar="نسخة الفحص الأولى", name_en="Checklist v1",
-                                                status="active", created_by=owner_email))
+                                               status="active", created_by=owner_email))
 
                     if s.query(AuditSection).count() == 0:
                         sec1 = AuditSection(code="SEC-SAFETY", name_ar="السلامة", name_en="Safety",
-                                             weight=40, sort_order=1, active=True)
+                                            weight=40, sort_order=1, active=True)
                         sec2 = AuditSection(code="SEC-SERVICE", name_ar="جودة الخدمة", name_en="Service Quality",
-                                             weight=60, sort_order=2, active=True)
+                                            weight=60, sort_order=2, active=True)
                         s.add_all([sec1, sec2])
                         s.flush()
                         s.add_all([
@@ -88,25 +86,10 @@ if not _has_users:
                         ])
                 st.success(t("account_created"))
                 st.rerun()
-
-    st.divider()
-    st.subheader(t("restore_setup_title"))
-    restore_file = st.file_uploader(t("restore_setup_uploader"), type=["json"], key="setup_restore_uploader")
-    if restore_file is not None:
-        if st.button(t("restore_setup_btn"), key="setup_restore_btn"):
-            from backup import import_all_data
-            try:
-                counts = import_all_data(restore_file.getvalue())
-                st.success(f"{t('import_success')} {counts}")
-                st.rerun()
-            except Exception as e:
-                st.error(f"{t('import_error')}: {e}")
-
     st.stop()
 
 st.title(t("app_title"))
 st.caption(t("app_caption"))
-
 user = current_user()
 
 if user:
@@ -128,5 +111,4 @@ else:
                 st.rerun()
             else:
                 st.error(msg)
-
     st.caption(t("first_time_hint"))
