@@ -22,11 +22,16 @@ def get_branches_cached():
 
 
 @st.cache_data(ttl=30, show_spinner=False)
+def get_branches_by_id_cached():
+    """قاموس {معرف الفرع: بياناته} — يلغي تكرار بناء نفس القاموس بعدة صفحات."""
+    return {b["id"]: b for b in get_branches_cached()}
+
+
+@st.cache_data(ttl=30, show_spinner=False)
 def get_active_branches_cached():
-    """الفروع النشطة فقط — تُستخدم بقوائم إنشاء تدقيق جديد."""
-    with get_session() as s:
-        branches = s.query(Branch).filter(Branch.status == "active").order_by(Branch.id).all()
-        return [{"id": b.id, "code": b.code, "name_ar": b.name_ar} for b in branches]
+    """الفروع النشطة فقط — تُشتق من القائمة الكاملة المخزّنة مؤقتًا (بدون استعلام قاعدة بيانات إضافي)."""
+    return [{"id": b["id"], "code": b["code"], "name_ar": b["name_ar"]}
+            for b in get_branches_cached() if b["status"] == "active"]
 
 
 @st.cache_data(ttl=60, show_spinner=False)
@@ -54,6 +59,7 @@ def get_sections_cached():
 def clear_reference_cache():
     """يمسح الكاش يدويًا فورًا بعد أي تعديل إداري (إضافة فرع/سؤال) لتجنّب عرض بيانات قديمة."""
     get_branches_cached.clear()
+    get_branches_by_id_cached.clear()
     get_active_branches_cached.clear()
     get_questions_for_version_cached.clear()
     get_sections_cached.clear()
