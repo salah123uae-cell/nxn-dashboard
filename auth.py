@@ -88,17 +88,21 @@ def current_user() -> dict | None:
 
 def require_login():
     """يوقف تنفيذ الصفحة إن لم يكن هناك مستخدم مسجّل دخول."""
+    from i18n import t  # استيراد محلي لتفادي أي حلقة استيراد دائرية
+
     if not current_user():
-        st.warning("🔒 الرجاء تسجيل الدخول أولاً من الصفحة الرئيسية")
+        st.warning(t("login_required"))
         st.stop()
 
 
 def require_role(*allowed_roles: str):
     """يوقف تنفيذ الصفحة إن لم يكن دور المستخدم من ضمن الأدوار المسموحة."""
+    from i18n import t  # استيراد محلي لتفادي أي حلقة استيراد دائرية
+
     require_login()
     user = current_user()
     if user["role"] not in allowed_roles:
-        st.error("🚫 ليس لديك صلاحية للوصول لهذه الصفحة")
+        st.error(t("no_permission"))
         st.stop()
 
 
