@@ -7,8 +7,6 @@ from database import get_session
 from models import AuditLog
 from i18n import t, language_switcher, get_lang
 
-st.set_page_config(page_title="Audit Log | سجل النشاط", page_icon="📜", layout="wide")
-
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
