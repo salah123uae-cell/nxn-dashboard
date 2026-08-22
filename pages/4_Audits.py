@@ -3,21 +3,28 @@ from branding import render_logo, apply_theme
 import pandas as pd
 from datetime import datetime
 
-from auth import require_login, current_user, log_action, can_manage_branch
+from auth import require_login, current_user, log_action, can_manage_branch, render_logout_sidebar
 from database import get_session
 from models import Audit, AuditAnswer, AuditQuestion, Branch, CorrectiveAction
 from utils import generate_reference, calculate_audit_score, score_badge, export_audits_to_excel
 from data_cache import get_branches_cached, get_active_branches_cached, get_questions_for_version_cached, get_sections_cached, clear_reference_cache
+from i18n import t, language_switcher, get_lang
 
-st.set_page_config(page_title="التدقيقات", page_icon="🔍", layout="wide")
-apply_theme()
+st.set_page_config(page_title="Audits | التدقيقات", page_icon="🔍", layout="wide")
+
+lang = get_lang()
+apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
 require_login()
+render_logout_sidebar()
 user = current_user()
 
-st.title("🔍 التدقيقات")
+with st.sidebar:
+    language_switcher()
 
-tab_list, tab_new, tab_conduct = st.tabs(["📄 قائمة التدقيقات", "➕ تدقيق جديد", "📝 تنفيذ / مراجعة تدقيق"])
+st.title(t("audits_title"))
+
+tab_list, tab_new, tab_conduct = st.tabs([t("tab_audit_list"), t("tab_new_audit"), t("tab_conduct")])
 
 # ---------- تبويب: قائمة التدقيقات ----------
 with tab_list:
@@ -27,40 +34,40 @@ with tab_list:
         rows = []
         for a in audits:
             rows.append({
-                "المرجع": a.reference,
-                "الفرع": branches_by_id[a.branch_id]["name_ar"] if a.branch_id in branches_by_id else "—",
-                "المدقق": a.auditor_email,
-                "الحالة": a.status,
-                "النتيجة": score_badge(a.score),
-                "تاريخ الإنشاء": a.created_at,
+                t("reference_col"): a.reference,
+                t("branch_col"): branches_by_id[a.branch_id]["name_ar"] if a.branch_id in branches_by_id else "—",
+                t("auditor_col"): a.auditor_email,
+                t("status_col"): a.status,
+                t("score_col"): score_badge(a.score),
+                t("created_at_col"): a.created_at,
             })
     df = pd.DataFrame(rows)
-    status_filter = st.multiselect("تصفية حسب الحالة", options=["scheduled", "draft", "submitted", "reviewed", "closed", "cancelled"])
+    status_filter = st.multiselect(t("filter_by_status"), options=["scheduled", "draft", "submitted", "reviewed", "closed", "cancelled"])
     if status_filter and not df.empty:
-        df = df[df["الحالة"].isin(status_filter)]
+        df = df[df[t("status_col")].isin(status_filter)]
     st.dataframe(df, use_container_width=True, hide_index=True)
 
     if not df.empty:
         excel_bytes = export_audits_to_excel(df)
-        st.download_button("⬇️ تصدير Excel", data=excel_bytes, file_name="audits.xlsx",
+        st.download_button(t("export_excel"), data=excel_bytes, file_name="audits.xlsx",
                             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 # ---------- تبويب: تدقيق جديد ----------
 with tab_new:
     if user["role"] not in ("owner", "manager", "auditor"):
-        st.info("ليس لديك صلاحية إنشاء تدقيقات جديدة")
+        st.info(t("no_create_permission"))
     else:
         active_branches = get_active_branches_cached()
         if not active_branches:
-            st.warning("لا توجد فروع نشطة. أضف فرعًا أولًا من صفحة الفروع.")
+            st.warning(t("no_active_branches"))
         else:
             with st.form("new_audit"):
                 branch_options = {f"{b['code']} - {b['name_ar']}": b["id"] for b in active_branches}
-                branch_choice = st.selectbox("الفرع", list(branch_options.keys()))
-                auditor_email = st.text_input("بريد المدقق", value=user["email"])
-                scheduled_at = st.date_input("تاريخ الجدولة", value=datetime.utcnow())
-                checklist_version = st.text_input("نسخة التشيك ليست", value="QV1")
-                if st.form_submit_button("إنشاء التدقيق"):
+                branch_choice = st.selectbox(t("branch_col"), list(branch_options.keys()))
+                auditor_email = st.text_input(t("auditor_email_label"), value=user["email"])
+                scheduled_at = st.date_input(t("schedule_date_label"), value=datetime.utcnow())
+                checklist_version = st.text_input(t("checklist_version_label"), value="QV1")
+                if st.form_submit_button(t("create_audit_btn")):
                     with get_session() as s:
                         audit = Audit(
                             reference=generate_reference(),
@@ -73,7 +80,7 @@ with tab_new:
                         s.add(audit)
                         s.flush()
                         log_action(user["email"], "create", "audit", audit.id, after={"reference": audit.reference})
-                        st.success(f"تم إنشاء التدقيق: {audit.reference} ✅")
+                        st.success(t("audit_created", ref=audit.reference))
                         st.rerun()
 
 # ---------- تبويب: تنفيذ / مراجعة تدقيق ----------
@@ -83,9 +90,9 @@ with tab_conduct:
         audit_options = {f"{a.reference} ({a.status})": a.id for a in audits}
 
     if not audit_options:
-        st.info("لا توجد تدقيقات متاحة للتنفيذ حاليًا")
+        st.info(t("no_audits_available"))
     else:
-        choice = st.selectbox("اختر التدقيق", list(audit_options.keys()))
+        choice = st.selectbox(t("select_audit"), list(audit_options.keys()))
         audit_id = audit_options[choice]
 
         with get_session() as s:
@@ -101,7 +108,7 @@ with tab_conduct:
         questions = get_questions_for_version_cached(checklist_version)
         sections = get_sections_cached()
 
-        st.write(f"**الفرع:** {branch_name} | **الحالة:** {audit_data['status']} | **النتيجة الحالية:** {score_badge(audit_data['score'])}")
+        st.write(t("audit_summary_line", branch=branch_name, status=audit_data["status"], score=score_badge(audit_data["score"])))
 
         editable = audit_data["status"] in ("scheduled", "draft")
 
@@ -123,11 +130,11 @@ with tab_conduct:
                 col1, col2 = st.columns([3, 1])
                 with col1:
                     st.write(f"**{q['code']}** — {q['question_ar']}  _(وزن: {q['weight']})_")
-                    note = st.text_input("ملاحظة", value=default_note, key=f"note_{audit_id}_{q['id']}", disabled=not editable, label_visibility="collapsed", placeholder="ملاحظة (اختياري)")
+                    note = st.text_input(t("note_label"), value=default_note, key=f"note_{audit_id}_{q['id']}", disabled=not editable, label_visibility="collapsed", placeholder=t("note_placeholder"))
                 with col2:
                     options = ["-- بدون --", "compliant", "non_compliant", "not_applicable"]
                     ans = st.selectbox(
-                        "الإجابة", options,
+                        t("answer_label"), options,
                         index=(options.index(default_answer) if default_answer in options else 0),
                         key=f"ans_{audit_id}_{q['id']}", disabled=not editable, label_visibility="collapsed",
                     )
@@ -136,12 +143,12 @@ with tab_conduct:
 
             if editable:
                 c1, c2 = st.columns(2)
-                save_draft = c1.form_submit_button("💾 حفظ كمسودة")
-                submit_final = c2.form_submit_button("📤 إرسال التدقيق النهائي")
+                save_draft = c1.form_submit_button(t("save_draft_btn"))
+                submit_final = c2.form_submit_button(t("submit_final_btn"))
             else:
                 save_draft = False
                 submit_final = False
-                st.info("هذا التدقيق مُرسل بالفعل — يمكن للمدير مراجعته وإغلاقه من الأسفل")
+                st.info(t("already_submitted_info"))
 
         # ---------- معالجة الحفظ كمسودة (خارج النموذج، بعد التقديم) ----------
         if editable and save_draft:
@@ -160,14 +167,14 @@ with tab_conduct:
                 if a.status == "scheduled":
                     a.status = "draft"
                     a.started_at = datetime.utcnow()
-            st.success("تم الحفظ كمسودة ✅")
+            st.success(t("saved_draft_msg"))
             st.rerun()
 
         # ---------- معالجة الإرسال النهائي (خارج النموذج، بعد التقديم) ----------
         if editable and submit_final:
             unanswered = [qid for qid, d in answers_input.items() if d["answer"] is None]
             if unanswered:
-                st.error(f"يوجد {len(unanswered)} سؤال بدون إجابة. أكمل الإجابات قبل الإرسال.")
+                st.error(t("unanswered_error", n=len(unanswered)))
             else:
                 with get_session() as s:
                     for qid, data in answers_input.items():
@@ -207,15 +214,15 @@ with tab_conduct:
                                 priority="high", status="open",
                             ))
                     log_action(user["email"], "submit", "audit", audit_id, after={"score": score})
-                st.success(f"تم إرسال التدقيق ✅ النتيجة: {score}%")
+                st.success(t("audit_submitted_msg", score=score))
                 st.rerun()
 
         if not editable and user["role"] in ("owner", "manager") and audit_data["status"] == "submitted":
-            if st.button("✅ اعتماد وإغلاق التدقيق"):
+            if st.button(t("close_audit_btn")):
                 with get_session() as s:
                     a = s.query(Audit).get(audit_id)
                     a.status = "closed"
                     a.closed_at = datetime.utcnow()
                     log_action(user["email"], "close", "audit", audit_id)
-                st.success("تم إغلاق التدقيق ✅")
+                st.success(t("audit_closed_msg"))
                 st.rerun()
