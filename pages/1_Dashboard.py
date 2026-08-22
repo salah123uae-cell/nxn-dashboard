@@ -6,7 +6,7 @@ import plotly.express as px
 from auth import require_login, current_user, render_logout_sidebar
 from database import get_session
 from models import Audit, CorrectiveAction
-from data_cache import get_branches_cached
+from data_cache import get_branches_by_id_cached
 from i18n import t, language_switcher, get_lang
 
 st.set_page_config(page_title="Dashboard | الداشبورد", page_icon="📊", layout="wide")
@@ -26,7 +26,7 @@ st.title(t("dashboard_title"))
 @st.cache_data(ttl=15, show_spinner=False)
 def load_dashboard_data():
     """يحمّل كل بيانات الداشبورد دفعة واحدة ويخزّنها 15 ثانية لتسريع التنقّل."""
-    branches_by_id = {b["id"]: b for b in get_branches_cached()}
+    branches_by_id = get_branches_by_id_cached()
     with get_session() as s:
         audits = s.query(Audit).all()
         actions = s.query(CorrectiveAction).all()
