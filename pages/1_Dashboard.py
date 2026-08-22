@@ -1,29 +1,46 @@
 import streamlit as st
+from branding import render_logo, apply_theme
 import pandas as pd
 import plotly.express as px
 
 from auth import require_login, current_user
 from database import get_session
-from models import Audit, Branch, CorrectiveAction
+from models import Audit, CorrectiveAction
+from data_cache import get_branches_cached
 
 st.set_page_config(page_title="الداشبورد", page_icon="📊", layout="wide")
+apply_theme()
+render_logo(size="small")
 require_login()
 user = current_user()
 
 st.title("📊 لوحة المعلومات")
 
-with get_session() as s:
-    audits = s.query(Audit).all()
-    branches = {b.id: b for b in s.query(Branch).all()}
-    actions = s.query(CorrectiveAction).all()
 
-    audits_data = [{
-        "id": a.id, "reference": a.reference,
-        "branch": branches[a.branch_id].name_ar if a.branch_id in branches else "—",
-        "status": a.status, "score": a.score,
-        "auditor": a.auditor_email, "created_at": a.created_at,
-    } for a in audits]
+@st.cache_data(ttl=15, show_spinner=False)
+def load_dashboard_data():
+    """يحمّل كل بيانات الداشبورد دفعة واحدة ويخزّنها 15 ثانية لتسريع التنقّل."""
+    branches_by_id = {b["id"]: b for b in get_branches_cached()}
+    with get_session() as s:
+        audits = s.query(Audit).all()
+        actions = s.query(CorrectiveAction).all()
 
+        audits_data = [{
+            "id": a.id, "reference": a.reference,
+            "branch": branches_by_id[a.branch_id]["name_ar"] if a.branch_id in branches_by_id else "—",
+            "status": a.status, "score": a.score,
+            "auditor": a.auditor_email, "created_at": a.created_at,
+        } for a in audits]
+
+        actions_data = [{
+            "title": a.title, "owner_email": a.owner_email,
+            "priority": a.priority, "status": a.status, "due_at": a.due_at,
+        } for a in actions]
+
+    return audits_data, actions_data
+
+
+audits_data, actions_data = load_dashboard_data()
 df = pd.DataFrame(audits_data)
 
 col1, col2, col3, col4 = st.columns(4)
@@ -58,11 +75,11 @@ with c2:
 
 st.divider()
 st.subheader("🛠️ الإجراءات التصحيحية المفتوحة")
-open_actions = [a for a in actions if a.status in ("open", "in_progress", "pending_review")]
+open_actions = [a for a in actions_data if a["status"] in ("open", "in_progress", "pending_review")]
 if open_actions:
     adf = pd.DataFrame([{
-        "العنوان": a.title, "المسؤول": a.owner_email,
-        "الأولوية": a.priority, "الحالة": a.status, "الاستحقاق": a.due_at,
+        "العنوان": a["title"], "المسؤول": a["owner_email"],
+        "الأولوية": a["priority"], "الحالة": a["status"], "الاستحقاق": a["due_at"],
     } for a in open_actions])
     st.dataframe(adf, use_container_width=True, hide_index=True)
 else:
