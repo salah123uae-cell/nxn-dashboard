@@ -61,6 +61,21 @@ TRANSLATIONS = {
     "no_score_data": {"ar": "لا توجد نتائج محسوبة بعد", "en": "No scores calculated yet"},
     "open_corrective_actions": {"ar": "🛠️ الإجراءات التصحيحية المفتوحة", "en": "🛠️ Open Corrective Actions"},
     "no_open_actions": {"ar": "لا توجد إجراءات تصحيحية مفتوحة 🎉", "en": "No open corrective actions 🎉"},
+    "branch_status_board": {"ar": "🗺️ لوحة حالة الفروع", "en": "🗺️ Branch Status Board"},
+    "filter_branch_label": {"ar": "🔎 تصفية حسب الفرع", "en": "🔎 Filter by Branch"},
+    "filter_date_from": {"ar": "من تاريخ", "en": "From Date"},
+    "filter_date_to": {"ar": "إلى تاريخ", "en": "To Date"},
+    "no_data_yet": {"ar": "لا توجد بيانات بعد", "en": "No data yet"},
+    "audits_count_label": {"ar": "تدقيق", "en": "audits"},
+
+    # ---------- دليل الاستخدام والجولة التفاعلية ----------
+    "help_title": {"ar": "📖 دليل الاستخدام", "en": "📖 User Guide"},
+    "help_tab_guide": {"ar": "📄 الدليل المكتوب", "en": "📄 Written Guide"},
+    "help_tab_tour": {"ar": "✨ جولة تفاعلية", "en": "✨ Interactive Tour"},
+    "tour_next": {"ar": "التالي ▶", "en": "Next ▶"},
+    "tour_back": {"ar": "◀ السابق", "en": "◀ Back"},
+    "tour_finish": {"ar": "🔁 إعادة الجولة", "en": "🔁 Restart Tour"},
+    "tour_step_label": {"ar": "خطوة", "en": "Step"},
 
     # ---------- Branches ----------
     "branches_title": {"ar": "🏢 إدارة الفروع", "en": "🏢 Branch Management"},
@@ -194,7 +209,7 @@ TRANSLATIONS = {
 
     # ---------- AI Assistant ----------
     "ai_title": {"ar": "🤖 المساعد الذكي والوكيل الذكي", "en": "🤖 AI Assistant & Smart Agent"},
-    "ai_caption": {"ar": "مدعوم بنموذج Claude من Anthropic", "en": "Powered by Anthropic's Claude"},
+    "ai_caption": {"ar": "مساعد ذكي لتحليل بيانات الجودة وتقديم توصيات عملية", "en": "A smart assistant for analyzing quality data and providing actionable recommendations"},
     "ai_not_configured": {"ar": "⚠️ **المساعد الذكي غير مفعّل بعد.**", "en": "⚠️ **The AI Assistant is not enabled yet.**"},
     "tab_chat": {"ar": "💬 محادثة مع المساعد", "en": "💬 Chat with Assistant"},
     "tab_insights": {"ar": "📊 ملخصات ذكية للتدقيقات", "en": "📊 Smart Audit Summaries"},
@@ -207,6 +222,11 @@ TRANSLATIONS = {
     "generate_summary_btn": {"ar": "🧠 توليد ملخص ذكي", "en": "🧠 Generate Smart Summary"},
     "ai_analyzing": {"ar": "المساعد الذكي يحلل بيانات التدقيق...", "en": "The assistant is analyzing audit data..."},
     "ai_thinking": {"ar": "جارٍ التفكير...", "en": "Thinking..."},
+    "ai_setup_step1": {"ar": "1. احصل على مفتاح تفعيل خدمة الذكاء الاصطناعي من مزوّد الخدمة.", "en": "1. Get an activation key for the AI service from the provider."},
+    "ai_setup_step2": {"ar": "2. في إعدادات الاستضافة: **Manage app → Settings → Secrets**، أضف السطر:", "en": "2. In hosting settings: **Manage app → Settings → Secrets**, add this line:"},
+    "ai_setup_step3": {"ar": "3. أعد تشغيل التطبيق (**Reboot app**).", "en": "3. Restart the app (**Reboot app**)."},
+    "ai_setup_cost_note": {"ar": "💡 **للتحكم بالتكلفة**: تقدر تضبط حدًا أقصى شهريًا للإنفاق من لوحة تحكم مزوّد الخدمة.", "en": "💡 **Cost control**: You can set a monthly spending cap from the provider's dashboard."},
+    "ai_not_ready_generic": {"ar": "🤖 هذه الميزة قيد التفعيل حاليًا. تواصل مع إدارة النظام لتفعيلها.", "en": "🤖 This feature is currently being activated. Please contact system administration."},
 
     # ---------- Backup / Restore ----------
     "backup_title": {"ar": "💾 النسخ الاحتياطي واستعادة البيانات", "en": "💾 Backup & Restore"},
@@ -226,6 +246,20 @@ TRANSLATIONS = {
     "restore_setup_title": {"ar": "أو استعد نظامك كاملًا من نسخة احتياطية سابقة", "en": "Or restore your entire system from a previous backup"},
     "restore_setup_uploader": {"ar": "ملف النسخة الاحتياطية (JSON)", "en": "Backup file (JSON)"},
     "restore_setup_btn": {"ar": "⬆️ استعادة كل شي من النسخة الاحتياطية", "en": "⬆️ Restore Everything from Backup"},
+
+    # ---------- عناوين القائمة الجانبية (تُقرأ ديناميكيًا عند كل تبديل لغة) ----------
+    "nav_home": {"ar": "🏠 الرئيسية", "en": "🏠 Home"},
+    "nav_dashboard": {"ar": "📊 لوحة المعلومات", "en": "📊 Dashboard"},
+    "nav_branches": {"ar": "🏢 الفروع", "en": "🏢 Branches"},
+    "nav_checklist": {"ar": "📋 قوائم الفحص", "en": "📋 Checklist"},
+    "nav_audits": {"ar": "🔍 التدقيقات", "en": "🔍 Audits"},
+    "nav_corrective": {"ar": "🛠️ الإجراءات التصحيحية", "en": "🛠️ Corrective Actions"},
+    "nav_users": {"ar": "👥 المستخدمون", "en": "👥 Users"},
+    "nav_reports": {"ar": "📈 التقارير", "en": "📈 Reports"},
+    "nav_auditlog": {"ar": "📜 سجل النشاط", "en": "📜 Audit Log"},
+    "nav_ai": {"ar": "🤖 المساعد الذكي", "en": "🤖 AI Assistant"},
+    "nav_backup": {"ar": "💾 النسخ الاحتياطي", "en": "💾 Backup"},
+    "nav_help": {"ar": "📖 دليل الاستخدام", "en": "📖 User Guide"},
 }
 
 
