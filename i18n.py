@@ -1,7 +1,7 @@
 """
 وحدة دعم تعدد اللغات (i18n) لكل صفحات النظام — عربي/إنجليزي.
 تحفظ اللغة المختارة في st.session_state وتوفر دالة t(key) للترجمة،
-ودالة language_switcher() لعرض روابط اختيار اللغة بالشريط الجانبي عبر رابط الصفحة.
+ودالة language_switcher() لعرض قائمة اختيار اللغة بالشريط الجانبي.
 """
 import streamlit as st
 
@@ -237,17 +237,17 @@ def t(key: str, **kwargs) -> str:
 
 
 def language_switcher():
-    """يعرض رابطين لتبديل اللغة بالشريط الجانبي (عربي/إنجليزي) عبر رابط الصفحة مباشرة."""
+    """يعرض زرّي تبديل اللغة بالشريط الجانبي (عربي/إنجليزي) — أزرار Streamlit حقيقية
+    لتفادي أي تعارض مع نظام التنقّل الداخلي لـ Streamlit عند استخدام روابط HTML عادية."""
     current = get_lang()
-    ar_style = "font-weight:700;" if current == "ar" else "opacity:0.55;"
-    en_style = "font-weight:700;" if current == "en" else "opacity:0.55;"
-    st.sidebar.markdown(
-        f"""
-        <div style="text-align:center; padding: 4px 0 8px 0;">
-            <a href="?lang=ar" target="_self" style="text-decoration:none; {ar_style}">العربية</a>
-            &nbsp;|&nbsp;
-            <a href="?lang=en" target="_self" style="text-decoration:none; {en_style}">English</a>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    col1, col2 = st.sidebar.columns(2)
+    ar_label = "🔵 العربية" if current == "ar" else "العربية"
+    en_label = "🔵 English" if current == "en" else "English"
+    if col1.button(ar_label, key="lang_btn_ar", use_container_width=True):
+        st.query_params["lang"] = "ar"
+        st.session_state["lang"] = "ar"
+        st.rerun()
+    if col2.button(en_label, key="lang_btn_en", use_container_width=True):
+        st.query_params["lang"] = "en"
+        st.session_state["lang"] = "en"
+        st.rerun()
