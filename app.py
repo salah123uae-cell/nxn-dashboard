@@ -1,9 +1,13 @@
+"""
+موجّه التنقّل الرئيسي للنظام. بدل الاعتماد على اكتشاف Streamlit التلقائي لمجلد
+الصفحات (الذي يجمّد أسماء الصفحات من اسم الملف بلغة واحدة ثابتة)، نبني هنا قائمة
+الصفحات صراحةً بعناوين مترجمة تُعاد قراءتها من TRANSLATIONS في كل مرة يُعاد فيها
+تحميل هذا الملف — أي عند كل تبديل لغة، تتحدّث القائمة الجانبية بالكامل فورًا.
+ملاحظة: مجلد الصفحات مُسمّى app_pages (بدل pages) بناءً على توصية Streamlit
+الرسمية، لتفادي أي تعارض بين نظام التنقّل اليدوي هنا واكتشاف الصفحات التلقائي.
+"""
 import streamlit as st
-from auth import login, current_user, ROLE_LABELS_AR, hash_password, render_logout_sidebar
-from database import init_db, get_session
-from models import User, Credential, Branch, ChecklistVersion, AuditSection, AuditQuestion
-from branding import render_logo, apply_theme
-from i18n import t, language_switcher, get_lang
+from i18n import t, get_lang
 
 st.set_page_config(
     page_title="NXN Quality System | نظام NXN لإدارة الجودة",
@@ -11,104 +15,23 @@ st.set_page_config(
     layout="wide",
 )
 
-lang = get_lang()
-apply_theme(direction="ltr" if lang == "en" else "rtl")
-render_logo()
-language_switcher()
+# نقرأ اللغة الحالية فقط للتأكد من إعادة بناء القائمة عند كل تغيير (get_lang يقرأ من session_state)
+_ = get_lang()
 
-if "db_initialized" not in st.session_state:
-    init_db()
-    st.session_state["db_initialized"] = True
+pages = [
+    st.Page("home.py", title=t("nav_home"), url_path="", default=True),
+    st.Page("app_pages/1_Dashboard.py", title=t("nav_dashboard"), url_path="Dashboard"),
+    st.Page("app_pages/2_Branches.py", title=t("nav_branches"), url_path="Branches"),
+    st.Page("app_pages/3_Checklist.py", title=t("nav_checklist"), url_path="Checklist"),
+    st.Page("app_pages/4_Audits.py", title=t("nav_audits"), url_path="Audits"),
+    st.Page("app_pages/5_Corrective_Actions.py", title=t("nav_corrective"), url_path="Corrective_Actions"),
+    st.Page("app_pages/6_Users.py", title=t("nav_users"), url_path="Users"),
+    st.Page("app_pages/7_Reports.py", title=t("nav_reports"), url_path="Reports"),
+    st.Page("app_pages/8_Audit_Log.py", title=t("nav_auditlog"), url_path="Audit_Log"),
+    st.Page("app_pages/9_AI_Assistant.py", title=t("nav_ai"), url_path="AI_Assistant"),
+    st.Page("app_pages/10_Backup.py", title=t("nav_backup"), url_path="Backup"),
+    st.Page("app_pages/11_Help.py", title=t("nav_help"), url_path="Help"),
+]
 
-with get_session() as _s:
-    _has_users = _s.query(User.id).first() is not None
-
-if not _has_users:
-    st.title(t("app_title"))
-    st.subheader(t("setup_title"))
-    st.info(t("setup_info"))
-
-    with st.form("initial_setup"):
-        owner_email = st.text_input(t("email_label"))
-        owner_name = st.text_input(t("name_label"))
-        owner_password = st.text_input(t("password_label"), type="password")
-        owner_password2 = st.text_input(t("password_confirm_label"), type="password")
-        submitted = st.form_submit_button(t("create_account_btn"))
-
-        if submitted:
-            if not owner_email or not owner_name or not owner_password:
-                st.error(t("fill_required"))
-            elif owner_password != owner_password2:
-                st.error(t("password_mismatch"))
-            else:
-                with get_session() as s:
-                    owner = User(email=owner_email.strip().lower(), name=owner_name, role="owner")
-                    s.add(owner)
-                    s.flush()
-                    s.add(Credential(user_id=owner.id, password_hash=hash_password(owner_password)))
-
-                    if s.query(Branch).count() == 0:
-                        s.add_all([
-                            Branch(code="BR-001", name_ar="فرع الرياض الرئيسي", name_en="Riyadh Main Branch",
-                                   region="الرياض", city="الرياض", status="active"),
-                            Branch(code="BR-002", name_ar="فرع جدة", name_en="Jeddah Branch",
-                                   region="مكة المكرمة", city="جدة", status="active"),
-                        ])
-
-                    if s.query(ChecklistVersion).count() == 0:
-                        s.add(ChecklistVersion(code="QV1", name_ar="نسخة الفحص الأولى", name_en="Checklist v1",
-                                               status="active", created_by=owner_email))
-
-                    if s.query(AuditSection).count() == 0:
-                        sec1 = AuditSection(code="SEC-SAFETY", name_ar="السلامة", name_en="Safety",
-                                            weight=40, sort_order=1, active=True)
-                        sec2 = AuditSection(code="SEC-SERVICE", name_ar="جودة الخدمة", name_en="Service Quality",
-                                            weight=60, sort_order=2, active=True)
-                        s.add_all([sec1, sec2])
-                        s.flush()
-                        s.add_all([
-                            AuditQuestion(section_id=sec1.id, code="Q-001",
-                                          question_ar="هل يوجد طفايات حريق سارية الصلاحية؟",
-                                          question_en="Are fire extinguishers valid?",
-                                          weight=10, checklist_version="QV1", sort_order=1),
-                            AuditQuestion(section_id=sec1.id, code="Q-002",
-                                          question_ar="هل مخارج الطوارئ غير مسدودة؟",
-                                          question_en="Are emergency exits unobstructed?",
-                                          weight=10, checklist_version="QV1", sort_order=2),
-                            AuditQuestion(section_id=sec2.id, code="Q-003",
-                                          question_ar="هل الموظفون يرتدون الزي الرسمي؟",
-                                          question_en="Are staff wearing uniforms?",
-                                          weight=15, checklist_version="QV1", sort_order=1),
-                            AuditQuestion(section_id=sec2.id, code="Q-004",
-                                          question_ar="هل تم الرد على العميل خلال دقيقتين؟",
-                                          question_en="Was the customer greeted within 2 minutes?",
-                                          weight=15, checklist_version="QV1", sort_order=2),
-                        ])
-                st.success(t("account_created"))
-                st.rerun()
-    st.stop()
-
-st.title(t("app_title"))
-st.caption(t("app_caption"))
-user = current_user()
-
-if user:
-    render_logout_sidebar()
-    role_label = ROLE_LABELS_AR.get(user["role"], user["role"])
-    st.success(t("welcome_msg", name=user["name"], role=role_label))
-    st.info(t("nav_hint"))
-else:
-    st.subheader(t("login_title"))
-    with st.form("login_form"):
-        email = st.text_input(t("email_label").replace(" *", ""))
-        password = st.text_input(t("password_label").replace(" *", ""), type="password")
-        submitted = st.form_submit_button(t("login_btn"))
-
-        if submitted:
-            ok, msg = login(email, password)
-            if ok:
-                st.success(msg)
-                st.rerun()
-            else:
-                st.error(msg)
-    st.caption(t("first_time_hint"))
+pg = st.navigation(pages, position="sidebar")
+pg.run()
