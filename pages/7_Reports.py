@@ -62,6 +62,7 @@ else:
             "auditor_email": audit.auditor_email,
             "status": audit.status,
             "score": audit.score,
+            "updated_at": audit.updated_at.isoformat() if audit.updated_at else "",
         }
 
     st.write(t(
@@ -72,7 +73,7 @@ else:
     ))
     st.dataframe(pd.DataFrame(answers_rows), use_container_width=True, hide_index=True)
 
-    pdf_key = f"_report_pdf_{audit_id}_{audit.updated_at.isoformat() if audit.updated_at else ''}"
+    pdf_key = f"_report_pdf_{audit_id}_{audit_info['updated_at']}"
     if st.button(t("download_pdf_btn"), key=f"prepare_pdf_{audit_id}"):
         st.session_state[pdf_key] = export_audit_report_pdf(audit_info, answers_rows)
     if pdf_key in st.session_state:
