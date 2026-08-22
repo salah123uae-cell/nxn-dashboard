@@ -1,16 +1,22 @@
 import streamlit as st
-from auth import login, logout, current_user, ROLE_LABELS_AR, hash_password
+from auth import login, logout, current_user, ROLE_LABELS_AR, hash_password, render_logout_sidebar
 from database import init_db, get_session
 from models import User, Credential, Branch, ChecklistVersion, AuditSection, AuditQuestion
 from branding import render_logo, apply_theme
+from i18n import t, language_switcher, get_lang
 
 st.set_page_config(
-    page_title="نظام NXN لإدارة جودة الفروع",
+    page_title="NXN Quality System | نظام NXN لإدارة الجودة",
     page_icon="✅",
     layout="wide",
 )
-apply_theme()
+
+lang = get_lang()
+apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo()
+
+with st.sidebar:
+    language_switcher()
 
 # ---------- التأكد من وجود الجداول، وتهيئة أولى إن لم يوجد أي مستخدم ----------
 init_db()
@@ -19,22 +25,22 @@ with get_session() as _s:
     _has_users = _s.query(User).count() > 0
 
 if not _has_users:
-    st.title("✅ نظام NXN لإدارة جودة الفروع")
-    st.subheader("⚙️ التهيئة الأولى — إنشاء حساب المالك")
-    st.info("لا يوجد أي مستخدم في النظام بعد. أنشئ حساب المالك الأول لتبدأ استخدام النظام (تُنشأ أيضًا فروع وأسئلة تجريبية تلقائيًا).")
+    st.title(t("app_title"))
+    st.subheader(t("setup_title"))
+    st.info(t("setup_info"))
 
     with st.form("initial_setup"):
-        owner_email = st.text_input("البريد الإلكتروني *")
-        owner_name = st.text_input("الاسم *")
-        owner_password = st.text_input("كلمة المرور *", type="password")
-        owner_password2 = st.text_input("تأكيد كلمة المرور *", type="password")
-        submitted = st.form_submit_button("🚀 إنشاء الحساب وبدء النظام")
+        owner_email = st.text_input(t("email_label"))
+        owner_name = st.text_input(t("name_label"))
+        owner_password = st.text_input(t("password_label"), type="password")
+        owner_password2 = st.text_input(t("password_confirm_label"), type="password")
+        submitted = st.form_submit_button(t("create_account_btn"))
 
         if submitted:
             if not owner_email or not owner_name or not owner_password:
-                st.error("الرجاء تعبئة جميع الحقول المطلوبة (*)")
+                st.error(t("fill_required"))
             elif owner_password != owner_password2:
-                st.error("كلمتا المرور غير متطابقتين")
+                st.error(t("password_mismatch"))
             else:
                 with get_session() as s:
                     owner = User(email=owner_email.strip().lower(), name=owner_name, role="owner")
@@ -79,27 +85,26 @@ if not _has_users:
                                           question_en="Was the customer greeted within 2 minutes?",
                                           weight=15, checklist_version="QV1", sort_order=2),
                         ])
-                st.success("🎉 تم إنشاء الحساب بنجاح! سجّل الدخول الآن من الأسفل.")
+                st.success(t("account_created"))
                 st.rerun()
     st.stop()
 
-st.title("✅ نظام NXN لإدارة جودة الفروع")
-st.caption("النسخة البايثونية — Streamlit + PostgreSQL")
+st.title(t("app_title"))
+st.caption(t("app_caption"))
 
 user = current_user()
 
 if user:
-    st.success(f"مرحبًا **{user['name']}** — الدور: {ROLE_LABELS_AR.get(user['role'], user['role'])}")
-    st.info("استخدم القائمة الجانبية للتنقّل بين صفحات النظام: الداشبورد، الفروع، التدقيقات، الإجراءات التصحيحية، التقارير، المستخدمين، وسجل النشاط.")
-    if st.button("🚪 تسجيل الخروج"):
-        logout()
-        st.rerun()
+    render_logout_sidebar()
+    role_label = ROLE_LABELS_AR.get(user["role"], user["role"])
+    st.success(t("welcome_msg", name=user["name"], role=role_label))
+    st.info(t("nav_hint"))
 else:
-    st.subheader("🔐 تسجيل الدخول")
+    st.subheader(t("login_title"))
     with st.form("login_form"):
-        email = st.text_input("البريد الإلكتروني")
-        password = st.text_input("كلمة المرور", type="password")
-        submitted = st.form_submit_button("دخول")
+        email = st.text_input(t("email_label").replace(" *", ""))
+        password = st.text_input(t("password_label").replace(" *", ""), type="password")
+        submitted = st.form_submit_button(t("login_btn"))
 
         if submitted:
             ok, msg = login(email, password)
@@ -109,4 +114,4 @@ else:
             else:
                 st.error(msg)
 
-    st.caption("أول مرة؟ شغّل `python seed.py` لإنشاء مستخدم مالك افتراضي (راجع ملف .env).")
+    st.caption(t("first_time_hint"))
