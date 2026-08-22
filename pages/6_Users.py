@@ -18,8 +18,7 @@ require_role("owner", "manager")
 render_logout_sidebar()
 user = current_user()
 
-with st.sidebar:
-    language_switcher()
+language_switcher()
 
 st.title(t("users_title"))
 
