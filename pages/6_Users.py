@@ -1,12 +1,16 @@
 import streamlit as st
+from branding import render_logo, apply_theme
 import pandas as pd
 import json
 
 from auth import require_role, current_user, hash_password, log_action, ROLES, ROLE_LABELS_AR
 from database import get_session
 from models import User, Credential, Branch
+from data_cache import get_branches_cached
 
 st.set_page_config(page_title="المستخدمون", page_icon="👥", layout="wide")
+apply_theme()
+render_logo(size="small")
 require_role("owner", "manager")
 user = current_user()
 
@@ -25,8 +29,7 @@ st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 st.divider()
 st.subheader("➕ إضافة مستخدم جديد")
 
-with get_session() as s:
-    branches = s.query(Branch).all()
+branches = get_branches_cached()
 
 with st.form("add_user"):
     c1, c2 = st.columns(2)
@@ -38,7 +41,7 @@ with st.form("add_user"):
 
     managed_branches = []
     if role in ("branch", "manager"):
-        branch_options = {f"{b.code} - {b.name_ar}": b.id for b in branches}
+        branch_options = {f"{b['code']} - {b['name_ar']}": b["id"] for b in branches}
         chosen = st.multiselect("الفروع المُدارة", list(branch_options.keys()))
         managed_branches = [branch_options[c] for c in chosen]
 
