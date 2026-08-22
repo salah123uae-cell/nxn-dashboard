@@ -108,3 +108,19 @@ def can_manage_branch(user: dict, branch_id: int) -> bool:
     if user["role"] == "branch":
         return branch_id in user.get("managed_branch_ids", [])
     return False
+
+
+def render_logout_sidebar():
+    """يعرض اسم المستخدم الحالي وزر تسجيل الخروج بالشريط الجانبي — يظهر بكل صفحة."""
+    from i18n import t  # استيراد محلي لتفادي أي حلقة استيراد دائرية
+
+    user = current_user()
+    if not user:
+        return
+    with st.sidebar:
+        st.divider()
+        role_label = ROLE_LABELS_AR.get(user["role"], user["role"])
+        st.caption(f"👤 {user['name']} — {role_label}")
+        if st.button(t("logout"), key="global_logout_btn", use_container_width=True):
+            logout()
+            st.rerun()
