@@ -1,4 +1,5 @@
 import streamlit as st
+from branding import render_logo, apply_theme
 import pandas as pd
 from datetime import datetime
 
@@ -7,6 +8,8 @@ from database import get_session
 from models import CorrectiveAction, Audit
 
 st.set_page_config(page_title="الإجراءات التصحيحية", page_icon="🛠️", layout="wide")
+apply_theme()
+render_logo(size="small")
 require_login()
 user = current_user()
 
@@ -38,14 +41,22 @@ if not df.empty:
 
     with get_session() as s:
         action = s.query(CorrectiveAction).get(action_id)
+        action_status = action.status
+        action_response_note = action.response_note or ""
+        action_owner_email = action.owner_email
 
-    can_update = user["role"] in ("owner", "manager") or user["email"] == action.owner_email
+    can_update = user["role"] in ("owner", "manager") or user["email"] == action_owner_email
 
     if can_update:
-        new_status = st.selectbox("الحالة الجديدة", ["open", "in_progress", "pending_review", "closed", "rejected"],
-                                   index=["open", "in_progress", "pending_review", "closed", "rejected"].index(action.status))
-        response_note = st.text_area("ملاحظة الرد", value=action.response_note or "")
-        if st.button("تحديث"):
+        # ملاحظة أداء: الحقول داخل نموذج (st.form) فلا تُعاد قراءة قاعدة البيانات
+        # وإعادة رسم الصفحة مع كل حرف يُكتب بملاحظة الرد — فقط عند الضغط على "تحديث".
+        with st.form(key=f"update_action_{action_id}"):
+            statuses = ["open", "in_progress", "pending_review", "closed", "rejected"]
+            new_status = st.selectbox("الحالة الجديدة", statuses, index=statuses.index(action_status))
+            response_note = st.text_area("ملاحظة الرد", value=action_response_note)
+            submitted = st.form_submit_button("تحديث")
+
+        if submitted:
             with get_session() as s:
                 a = s.query(CorrectiveAction).get(action_id)
                 before = {"status": a.status}
