@@ -207,6 +207,25 @@ TRANSLATIONS = {
     "generate_summary_btn": {"ar": "🧠 توليد ملخص ذكي", "en": "🧠 Generate Smart Summary"},
     "ai_analyzing": {"ar": "المساعد الذكي يحلل بيانات التدقيق...", "en": "The assistant is analyzing audit data..."},
     "ai_thinking": {"ar": "جارٍ التفكير...", "en": "Thinking..."},
+
+    # ---------- Backup / Restore ----------
+    "backup_title": {"ar": "💾 النسخ الاحتياطي واستعادة البيانات", "en": "💾 Backup & Restore"},
+    "backup_warning": {"ar": "⚠️ **مهم جدًا**: قاعدة البيانات الحالية قد لا تكون دائمة على الاستضافة السحابية. نزّلي نسخة احتياطية بشكل دوري لتفادي فقدان البيانات.",
+                        "en": "⚠️ **Important**: The current database may not be permanent on cloud hosting. Download a backup regularly to avoid data loss."},
+    "export_backup_title": {"ar": "⬇️ تصدير نسخة احتياطية كاملة", "en": "⬇️ Export Full Backup"},
+    "export_backup_desc": {"ar": "يحمّل ملف JSON واحد فيه كل بيانات النظام (فروع، مستخدمين، تدقيقات، إجراءات تصحيحية، سجل النشاط).",
+                            "en": "Downloads a single JSON file containing all system data (branches, users, audits, corrective actions, activity log)."},
+    "export_backup_btn": {"ar": "⬇️ تنزيل النسخة الاحتياطية", "en": "⬇️ Download Backup"},
+    "import_backup_title": {"ar": "⬆️ استعادة من نسخة احتياطية", "en": "⬆️ Restore from Backup"},
+    "import_backup_desc": {"ar": "⚠️ سيتم استبدال أي بيانات بنفس المعرّفات. استخدم هذا فقط عند نقل قاعدة البيانات أو الاستعادة بعد مشكلة.",
+                            "en": "⚠️ Existing data with matching IDs will be overwritten. Use this only when migrating databases or recovering from an issue."},
+    "import_backup_uploader": {"ar": "اختر ملف النسخة الاحتياطية (JSON)", "en": "Choose backup file (JSON)"},
+    "import_backup_btn": {"ar": "⬆️ استعادة البيانات الآن", "en": "⬆️ Restore Data Now"},
+    "import_success": {"ar": "✅ تمت الاستعادة بنجاح:", "en": "✅ Restore completed successfully:"},
+    "import_error": {"ar": "❌ حدث خطأ أثناء الاستعادة", "en": "❌ An error occurred during restore"},
+    "restore_setup_title": {"ar": "أو استعد نظامك كاملًا من نسخة احتياطية سابقة", "en": "Or restore your entire system from a previous backup"},
+    "restore_setup_uploader": {"ar": "ملف النسخة الاحتياطية (JSON)", "en": "Backup file (JSON)"},
+    "restore_setup_btn": {"ar": "⬆️ استعادة كل شي من النسخة الاحتياطية", "en": "⬆️ Restore Everything from Backup"},
 }
 
 
