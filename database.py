@@ -52,6 +52,16 @@ def _default_sqlite_path() -> str:
 # افتراضيًا: ملف SQLite في أول مجلد قابل للكتابة (صفر إعدادات، ويعمل محليًا وسحابيًا)
 DATABASE_URL = _get_setting("DATABASE_URL", f"sqlite:///{_default_sqlite_path()}")
 
+# بعض مزوّدي الاستضافة (مثل Neon, Heroku, Railway) يعطون رابطًا يبدأ بـ postgres://
+# لكن SQLAlchemy الحديث (2.x) يشترط postgresql:// — نصحّح الصيغة تلقائيًا هنا.
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# نستخدم مكتبة psycopg (الإصدار 3) بدل psycopg2 القديمة، لأنها تدعم أحدث إصدارات
+# بايثون (مثل 3.13/3.14) بعجلات (wheels) جاهزة بدون الحاجة لبناء من المصدر.
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+
 _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=_connect_args)
