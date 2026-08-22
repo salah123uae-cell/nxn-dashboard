@@ -14,11 +14,11 @@ st.set_page_config(page_title="Users | المستخدمون", page_icon="👥", 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
+language_switcher()
 require_role("owner", "manager")
 render_logout_sidebar()
 user = current_user()
 
-language_switcher()
 
 st.title(t("users_title"))
 
