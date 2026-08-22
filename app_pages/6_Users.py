@@ -5,11 +5,9 @@ import json
 
 from auth import require_role, current_user, hash_password, log_action, ROLES, ROLE_LABELS_AR, render_logout_sidebar
 from database import get_session
-from models import User, Credential, Branch
+from models import User, Credential
 from data_cache import get_branches_cached
 from i18n import t, language_switcher, get_lang
-
-st.set_page_config(page_title="Users | المستخدمون", page_icon="👥", layout="wide")
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
