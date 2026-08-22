@@ -2,19 +2,26 @@ import streamlit as st
 from branding import render_logo, apply_theme
 import pandas as pd
 
-from auth import require_login, current_user
+from auth import require_login, current_user, render_logout_sidebar
 from database import get_session
 from models import Audit, AuditAnswer, AuditQuestion, Branch
 from utils import export_audit_report_pdf, export_audits_to_excel
 from data_cache import get_branches_cached
+from i18n import t, language_switcher, get_lang
 
-st.set_page_config(page_title="التقارير", page_icon="📈", layout="wide")
-apply_theme()
+st.set_page_config(page_title="Reports | التقارير", page_icon="📈", layout="wide")
+
+lang = get_lang()
+apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
 require_login()
+render_logout_sidebar()
 user = current_user()
 
-st.title("📈 التقارير")
+with st.sidebar:
+    language_switcher()
+
+st.title(t("reports_title"))
 
 branches_by_id = {b["id"]: b for b in get_branches_cached()}
 
@@ -22,10 +29,10 @@ with get_session() as s:
     audits = s.query(Audit).filter(Audit.status.in_(["submitted", "reviewed", "closed"])).order_by(Audit.created_at.desc()).all()
 
 if not audits:
-    st.info("لا توجد تدقيقات مُرسلة بعد لتوليد تقرير عنها")
+    st.info(t("no_submitted_audits"))
 else:
     options = {f"{a.reference} - {branches_by_id[a.branch_id]['name_ar'] if a.branch_id in branches_by_id else ''}": a.id for a in audits}
-    choice = st.selectbox("اختر تدقيقًا لعرض تقريره", list(options.keys()))
+    choice = st.selectbox(t("select_audit_report"), list(options.keys()))
     audit_id = options[choice]
 
     with get_session() as s:
@@ -45,25 +52,25 @@ else:
             "auditor_email": audit.auditor_email, "status": audit.status, "score": audit.score,
         }
 
-    st.write(f"**المرجع:** {audit_info['reference']} | **الفرع:** {audit_info['branch_name']} | **النتيجة:** {audit_info['score']}%")
+    st.write(t("report_summary_line", ref=audit_info["reference"], branch=audit_info["branch_name"], score=audit_info["score"]))
     st.table(pd.DataFrame(answers_rows))
 
     pdf_bytes = export_audit_report_pdf(audit_info, answers_rows)
-    st.download_button("⬇️ تحميل تقرير PDF", data=pdf_bytes,
+    st.download_button(t("download_pdf_btn"), data=pdf_bytes,
                         file_name=f"{audit_info['reference']}.pdf", mime="application/pdf")
 
 st.divider()
-st.subheader("📊 تصدير كل التدقيقات")
+st.subheader(t("export_all_title"))
 with get_session() as s:
     all_audits = s.query(Audit).all()
     df_all = pd.DataFrame([{
-        "المرجع": a.reference,
-        "الفرع": branches_by_id[a.branch_id]["name_ar"] if a.branch_id in branches_by_id else "—",
-        "المدقق": a.auditor_email, "الحالة": a.status, "النتيجة": a.score,
-        "تاريخ الإنشاء": a.created_at,
+        t("reference_col"): a.reference,
+        t("branch_col"): branches_by_id[a.branch_id]["name_ar"] if a.branch_id in branches_by_id else "—",
+        t("auditor_col"): a.auditor_email, t("status_col"): a.status, t("score_col"): a.score,
+        t("created_at_col"): a.created_at,
     } for a in all_audits])
 
 if not df_all.empty:
     excel_bytes = export_audits_to_excel(df_all)
-    st.download_button("⬇️ تصدير الكل Excel", data=excel_bytes, file_name="all_audits.xlsx",
+    st.download_button(t("export_all_excel_btn"), data=excel_bytes, file_name="all_audits.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
