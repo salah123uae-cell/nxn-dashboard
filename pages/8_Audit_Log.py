@@ -1,33 +1,43 @@
 import streamlit as st
+from branding import render_logo, apply_theme
 import pandas as pd
 
-from auth import require_role
+from auth import require_role, render_logout_sidebar
 from database import get_session
 from models import AuditLog
+from i18n import t, language_switcher, get_lang
 
-st.set_page_config(page_title="سجل النشاط", page_icon="📜", layout="wide")
+st.set_page_config(page_title="Audit Log | سجل النشاط", page_icon="📜", layout="wide")
+
+lang = get_lang()
+apply_theme(direction="ltr" if lang == "en" else "rtl")
+render_logo(size="small")
 require_role("owner", "manager")
+render_logout_sidebar()
 
-st.title("📜 سجل النشاط (Audit Log)")
+with st.sidebar:
+    language_switcher()
+
+st.title(t("audit_log_title"))
 
 with get_session() as s:
     logs = s.query(AuditLog).order_by(AuditLog.created_at.desc()).limit(500).all()
     rows = [{
-        "الوقت": l.created_at, "الفاعل": l.actor_email, "الإجراء": l.action,
-        "النوع": l.entity_type, "المعرف": l.entity_id,
+        t("time_col"): l.created_at, t("actor_col"): l.actor_email, t("action_col"): l.action,
+        t("entity_type_col"): l.entity_type, t("entity_id_col"): l.entity_id,
     } for l in logs]
 
 df = pd.DataFrame(rows)
 
 c1, c2 = st.columns(2)
-actor_filter = c1.text_input("تصفية حسب البريد الإلكتروني")
-entity_filter = c2.text_input("تصفية حسب نوع الكيان (مثال: audit, branch, user)")
+actor_filter = c1.text_input(t("filter_by_email"))
+entity_filter = c2.text_input(t("filter_by_entity"))
 
 if not df.empty:
     if actor_filter:
-        df = df[df["الفاعل"].str.contains(actor_filter, case=False, na=False)]
+        df = df[df[t("actor_col")].str.contains(actor_filter, case=False, na=False)]
     if entity_filter:
-        df = df[df["النوع"].str.contains(entity_filter, case=False, na=False)]
+        df = df[df[t("entity_type_col")].str.contains(entity_filter, case=False, na=False)]
 
 st.dataframe(df, use_container_width=True, hide_index=True)
-st.caption(f"آخر {len(rows)} حدث معروض من أصل السجل الكامل")
+st.caption(t("log_caption", n=len(rows)))
