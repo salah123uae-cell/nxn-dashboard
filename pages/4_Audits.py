@@ -29,7 +29,7 @@ tab_list, tab_new, tab_conduct = st.tabs([t("tab_audit_list"), t("tab_new_audit"
 with tab_list:
     branches_by_id = get_branches_by_id_cached()
     with get_session() as s:
-        audits = s.query(Audit).order_by(Audit.created_at.desc()).all()
+        audits = s.query(Audit).order_by(Audit.created_at.desc()).limit(500).all()
         rows = []
         for a in audits:
             rows.append({
@@ -47,9 +47,15 @@ with tab_list:
     st.dataframe(df, use_container_width=True, hide_index=True)
 
     if not df.empty:
-        excel_bytes = export_audits_to_excel(df)
-        st.download_button(t("export_excel"), data=excel_bytes, file_name="audits.xlsx",
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        if st.button(t("export_excel"), key="prepare_audits_excel"):
+            st.session_state["_audits_excel"] = export_audits_to_excel(df)
+        if "_audits_excel" in st.session_state:
+            st.download_button(
+                t("export_excel"), data=st.session_state["_audits_excel"],
+                file_name="audits.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key="download_audits_excel",
+            )
 
 # ---------- تبويب: تدقيق جديد ----------
 with tab_new:
@@ -85,7 +91,9 @@ with tab_new:
 # ---------- تبويب: تنفيذ / مراجعة تدقيق ----------
 with tab_conduct:
     with get_session() as s:
-        audits = s.query(Audit).filter(Audit.status.in_(["scheduled", "draft", "submitted", "reviewed"])).all()
+        audits = s.query(Audit).filter(
+            Audit.status.in_(["scheduled", "draft", "submitted", "reviewed"])
+        ).order_by(Audit.created_at.desc()).limit(500).all()
         audit_options = {f"{a.reference} ({a.status})": a.id for a in audits}
 
     if not audit_options:
@@ -152,8 +160,13 @@ with tab_conduct:
         # ---------- معالجة الحفظ كمسودة (خارج النموذج، بعد التقديم) ----------
         if editable and save_draft:
             with get_session() as s:
+                existing_by_question = {
+                    answer.question_id: answer for answer in s.query(AuditAnswer).filter(
+                        AuditAnswer.audit_id == audit_id
+                    ).all()
+                }
                 for qid, data in answers_input.items():
-                    existing = s.query(AuditAnswer).filter(AuditAnswer.audit_id == audit_id, AuditAnswer.question_id == qid).first()
+                    existing = existing_by_question.get(qid)
                     if existing:
                         existing.answer = data["answer"]
                         existing.note = data["note"]
@@ -176,8 +189,13 @@ with tab_conduct:
                 st.error(t("unanswered_error", n=len(unanswered)))
             else:
                 with get_session() as s:
+                    existing_by_question = {
+                        answer.question_id: answer for answer in s.query(AuditAnswer).filter(
+                            AuditAnswer.audit_id == audit_id
+                        ).all()
+                    }
                     for qid, data in answers_input.items():
-                        existing = s.query(AuditAnswer).filter(AuditAnswer.audit_id == audit_id, AuditAnswer.question_id == qid).first()
+                        existing = existing_by_question.get(qid)
                         score_awarded = data["weight"] if data["answer"] == "compliant" else 0
                         if existing:
                             existing.answer = data["answer"]
