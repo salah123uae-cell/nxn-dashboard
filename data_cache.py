@@ -9,7 +9,7 @@ from database import get_session
 from models import Branch, AuditSection, AuditQuestion
 
 
-@st.cache_data(ttl=30, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_branches_cached():
     """كل الفروع (نشطة وغير نشطة) كقواميس بسيطة — تُستخدم للعرض والبحث بالاسم."""
     with get_session() as s:
@@ -21,20 +21,20 @@ def get_branches_cached():
         } for b in branches]
 
 
-@st.cache_data(ttl=30, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_branches_by_id_cached():
     """قاموس {معرف الفرع: بياناته} — يلغي تكرار بناء نفس القاموس بعدة صفحات."""
     return {b["id"]: b for b in get_branches_cached()}
 
 
-@st.cache_data(ttl=30, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_active_branches_cached():
     """الفروع النشطة فقط — تُشتق من القائمة الكاملة المخزّنة مؤقتًا (بدون استعلام قاعدة بيانات إضافي)."""
     return [{"id": b["id"], "code": b["code"], "name_ar": b["name_ar"]}
             for b in get_branches_cached() if b["status"] == "active"]
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_questions_for_version_cached(checklist_version: str):
     """أسئلة نسخة تشيك ليست معيّنة، مرتبة — بيانات مرجعية نادرًا ما تتغيّر."""
     with get_session() as s:
@@ -48,7 +48,7 @@ def get_questions_for_version_cached(checklist_version: str):
         } for q in questions]
 
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_sections_cached():
     """كل أقسام التدقيق كقاموس {id: بيانات القسم}."""
     with get_session() as s:
