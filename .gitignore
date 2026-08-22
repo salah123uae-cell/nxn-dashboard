@@ -1,0 +1,21 @@
+# Python generated files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local databases and environment secrets
+*.db
+*.sqlite
+*.sqlite3
+.env
+.streamlit/secrets.toml
+
+# Test and tool caches
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
