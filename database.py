@@ -2,6 +2,7 @@
 import os
 import tempfile
 from contextlib import contextmanager
+from functools import lru_cache
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -57,10 +58,14 @@ elif DATABASE_URL.startswith("postgresql+psycopg2://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql+psycopg2://", "postgresql+psycopg://", 1)
 
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=connect_args)
+engine_options = {"pool_pre_ping": True, "connect_args": connect_args}
+if DATABASE_URL.startswith("postgresql"):
+    engine_options.update(pool_size=5, max_overflow=10, pool_timeout=10, pool_recycle=300)
+engine = create_engine(DATABASE_URL, **engine_options)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
+@lru_cache(maxsize=1)
 def init_db():
     Base.metadata.create_all(bind=engine)
 
