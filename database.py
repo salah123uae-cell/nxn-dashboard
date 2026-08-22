@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from functools import lru_cache
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from models import Base
@@ -68,6 +68,11 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 @lru_cache(maxsize=1)
 def init_db():
     Base.metadata.create_all(bind=engine)
+    # Index the dominant sort paths used by dashboards, lists, and reports.
+    with engine.begin() as connection:
+        connection.execute(text("CREATE INDEX IF NOT EXISTS audits_created_at_idx ON audits (created_at DESC)"))
+        connection.execute(text("CREATE INDEX IF NOT EXISTS actions_created_at_idx ON corrective_actions (created_at DESC)"))
+        connection.execute(text("CREATE INDEX IF NOT EXISTS audit_log_created_at_idx ON audit_log (created_at DESC)"))
 
 
 @contextmanager
