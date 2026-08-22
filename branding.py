@@ -1,5 +1,9 @@
 """
 وحدة مشتركة لعرض شعار NxN وتطبيق ألوان الهوية البصرية داخل صفحات Streamlit.
+الألوان مأخوذة من دليل الهوية البصرية الرسمي لشركة NxN:
+- Bright Lime Green : #44D62C
+- Cerulean Blue      : #1E22AA
+- Amethyst Purple    : #963CBD
 """
 import streamlit as st
 
@@ -46,21 +50,53 @@ def render_logo(size: str = "large"):
     )
 
 
-def apply_theme():
-    """يطبّق تنسيقات إضافية (اتجاه RTL + لمسات من ألوان الهوية) على الصفحة الحالية."""
+def apply_theme(direction: str = "rtl"):
+    """يطبّق تنسيقات إضافية (اتجاه الصفحة + لمسات من ألوان الهوية) على الصفحة الحالية."""
     st.markdown(
         f"""
         <style>
-        .block-container {{ direction: rtl; }}
-        h1, h2, h3 {{ color: {BRAND_BLUE}; }}
-        .stButton>button {{
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Cairo:wght@400;600;700&display=swap');
+
+        html, body, [class*="css"] {{
+            font-family: 'Inter', 'Cairo', sans-serif;
+        }}
+        .block-container {{ direction: {direction}; }}
+        h1, h2, h3 {{ color: {BRAND_BLUE}; font-weight: 800; }}
+
+        [data-testid="stMetric"] {{
+            background: #FFFFFF;
+            border: 1px solid #ECECF4;
+            border-radius: 14px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 8px rgba(30, 34, 170, 0.06);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }}
+        [data-testid="stMetric"]:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(30, 34, 170, 0.12);
+        }}
+
+        .stButton>button, .stDownloadButton>button, .stFormSubmitButton>button {{
             background-color: {BRAND_LIME};
             color: white;
             border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: background-color 0.15s ease, transform 0.1s ease;
         }}
-        .stButton>button:hover {{
+        .stButton>button:hover, .stDownloadButton>button:hover, .stFormSubmitButton>button:hover {{
             background-color: {BRAND_PURPLE};
             color: white;
+            transform: translateY(-1px);
+        }}
+
+        [data-testid="stSidebar"] {{
+            background: linear-gradient(180deg, #FAFAFF 0%, #F3F3FC 100%);
+        }}
+
+        div[data-testid="stDataFrame"] thead tr th {{
+            background-color: {BRAND_BLUE} !important;
+            color: white !important;
         }}
         </style>
         """,
