@@ -22,17 +22,21 @@ user = current_user()
 st.title(t("corrective_actions_title"))
 
 with get_session() as s:
-    actions = s.query(CorrectiveAction).order_by(CorrectiveAction.created_at.desc()).all()
-    audits = {a.id: a for a in s.query(Audit).all()}
-
+    actions_query = s.query(CorrectiveAction, Audit.reference).join(
+        Audit, Audit.id == CorrectiveAction.audit_id
+    )
     if user["role"] in ("auditor", "branch"):
-        actions = [a for a in actions if a.owner_email == user["email"]]
+        actions_query = actions_query.filter(CorrectiveAction.owner_email == user["email"])
+    action_rows = actions_query.order_by(
+        CorrectiveAction.created_at.desc()
+    ).limit(500).all()
 
     rows = [{
-        "id": a.id, t("reference_col"): audits[a.audit_id].reference if a.audit_id in audits else "—",
-        t("title_col"): a.title, t("owner_col"): a.owner_email, t("priority_col"): a.priority,
-        t("status_col"): a.status, t("due_col"): a.due_at,
-    } for a in actions]
+        "id": action.id, t("reference_col"): reference,
+        t("title_col"): action.title, t("owner_col"): action.owner_email,
+        t("priority_col"): action.priority, t("status_col"): action.status,
+        t("due_col"): action.due_at,
+    } for action, reference in action_rows]
 
 df = pd.DataFrame(rows)
 st.dataframe(df.drop(columns=["id"]) if not df.empty else df, use_container_width=True, hide_index=True)
