@@ -15,6 +15,6 @@ reportlab==4.2.2
 pillow==11.3.0
 pyarrow==22.0.0
 
-# اختياري: فعّل السطر التالي فقط إذا قررت لاحقًا استخدام PostgreSQL بدل SQLite
-# (مثلاً عند النشر أونلاين على Neon/Railway/Supabase)
-# psycopg2-binary==2.9.9
+# مُفعّل لدعم PostgreSQL (Neon/Supabase/Railway) — مطلوب عشان البيانات ما تضيع
+# نستخدم psycopg (الإصدار 3) بدل psycopg2 لأنها تدعم أحدث إصدارات بايثون (3.13/3.14) بعجلات جاهزة
+psycopg[binary]==3.3.4
