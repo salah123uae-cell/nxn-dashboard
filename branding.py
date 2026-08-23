@@ -50,8 +50,37 @@ def render_logo(size: str = "large"):
     )
 
 
+def render_sidebar_logo():
+    """يعرض شعار NxN مصغّر أعلى الشريط الجانبي الداكن (نفس أسلوب لوحة nxn الرسمية)."""
+    st.sidebar.markdown(
+        f"""
+        <div style="text-align:center; padding: 18px 0 14px 0;">
+            <div style="
+                font-family: Arial, sans-serif;
+                font-weight: 800;
+                font-style: italic;
+                font-size: 34px;
+                color: {BRAND_LIME};
+                letter-spacing: -2px;
+                line-height: 1;
+            ">nxn</div>
+            <div style="
+                font-family: Arial, sans-serif;
+                font-weight: 600;
+                font-size: 11px;
+                color: #C7C9F5;
+                letter-spacing: 1px;
+                margin-top: 8px;
+            ">منظومة الجودة المركزية</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def apply_theme(direction: str = "rtl"):
-    """يطبّق تنسيقات إضافية (اتجاه الصفحة + لمسات من ألوان الهوية) على الصفحة الحالية."""
+    """يطبّق تنسيقات إضافية (اتجاه الصفحة + ألوان الهوية) على الصفحة الحالية.
+    الشريط الجانبي بلون كحلي داكن متدرّج (مطابق للوحة تحكم NxN الرسمية)."""
     st.markdown(
         f"""
         <style>
@@ -88,8 +117,45 @@ def apply_theme(direction: str = "rtl"):
             transform: translateY(-1px);
         }}
 
+        /* ---------- الشريط الجانبي: كحلي داكن متدرّج، مطابق لهوية NxN الرسمية ---------- */
         [data-testid="stSidebar"] {{
-            background: linear-gradient(180deg, #FAFAFF 0%, #F3F3FC 100%);
+            background: linear-gradient(180deg, #1E1B4B 0%, #14123A 100%);
+        }}
+        [data-testid="stSidebar"] p,
+        [data-testid="stSidebar"] span,
+        [data-testid="stSidebar"] label,
+        [data-testid="stSidebar"] .stCaption {{
+            color: #C7C9F5 !important;
+        }}
+        [data-testid="stSidebar"] hr {{
+            border-color: rgba(255,255,255,0.12) !important;
+        }}
+        /* روابط التنقّل بالقائمة الجانبية */
+        [data-testid="stSidebar"] a,
+        [data-testid="stSidebarNav"] a {{
+            color: #DADCFF !important;
+            border-radius: 10px !important;
+        }}
+        [data-testid="stSidebar"] a:hover,
+        [data-testid="stSidebarNav"] a:hover {{
+            background: rgba(255,255,255,0.08) !important;
+            color: #FFFFFF !important;
+        }}
+        [data-testid="stSidebar"] a[aria-current="page"],
+        [data-testid="stSidebarNav"] a[aria-current="page"] {{
+            background: {BRAND_LIME} !important;
+            color: #14123A !important;
+            font-weight: 700 !important;
+        }}
+        /* أزرار تبديل اللغة وتسجيل الخروج بالشريط الجانبي تبقى بألوان الهوية الزاهية */
+        [data-testid="stSidebar"] .stButton>button {{
+            background-color: {BRAND_LIME};
+            color: #14123A;
+            font-weight: 700;
+        }}
+        [data-testid="stSidebar"] .stButton>button:hover {{
+            background-color: {BRAND_PURPLE};
+            color: white;
         }}
 
         div[data-testid="stDataFrame"] thead tr th {{
@@ -100,3 +166,23 @@ def apply_theme(direction: str = "rtl"):
         """,
         unsafe_allow_html=True,
     )
+
+
+def render_hero_banner(title: str, subtitle: str = ""):
+    """بطاقة ترحيبية بتدرّج بنفسجي-أزرق (نفس أسلوب لوحة nxn الرسمية) — للاستخدام أعلى الصفحة الرئيسية."""
+    subtitle_html = f'<div style="font-size:15px; color:#EDEBFF; margin-top:8px; line-height:1.6;">{subtitle}</div>' if subtitle else ""
+    st.markdown(
+        f"""
+        <div style="
+            background: linear-gradient(120deg, {BRAND_PURPLE} 0%, {BRAND_BLUE} 100%);
+            border-radius: 20px; padding: 32px 36px; margin: 12px 0 24px 0;
+            box-shadow: 0 8px 24px rgba(30, 34, 170, 0.18);
+        ">
+            <div style="font-size:12px; font-weight:700; letter-spacing:2px; color:{BRAND_LIME}; text-transform:uppercase;">NXN Quality Control</div>
+            <div style="font-size:26px; font-weight:800; color:white; margin-top:8px;">{title}</div>
+            {subtitle_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
