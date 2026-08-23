@@ -8,7 +8,7 @@ import streamlit as st
 from datetime import datetime
 
 from database import get_session
-from models import User, Credential, AuditLog
+from models import User, Credential, AuditLog, SignupRequest, PasswordResetRequest
 
 ROLES = ["owner", "manager", "auditor", "branch", "viewer"]
 
@@ -48,10 +48,12 @@ def log_action(actor_email: str, action: str, entity_type: str, entity_id=None, 
 
 def login(email: str, password: str) -> tuple[bool, str]:
     """يحاول تسجيل الدخول. يرجع (نجاح, رسالة)."""
+    from i18n import t  # استيراد محلي لتفادي أي حلقة استيراد دائرية
+
     with get_session() as s:
         user = s.query(User).filter(User.email == email.strip().lower()).first()
         if not user or not user.active:
-            return False, "البريد الإلكتروني غير موجود أو الحساب معطّل"
+            return False, t("account_disabled_or_pending")
 
         if user.suspended_until and user.suspended_until > datetime.utcnow():
             return False, f"الحساب موقوف حتى {user.suspended_until}"
@@ -114,6 +116,124 @@ def can_manage_branch(user: dict, branch_id: int) -> bool:
     return False
 
 
+def create_signup_request(first_name: str, last_name: str, email: str,
+                           employee_number: str, password: str) -> tuple[bool, str]:
+    """ينشئ طلب حساب جديد بانتظار موافقة الإدارة. يرجع (نجاح, رسالة)."""
+    email = email.strip().lower()
+    with get_session() as s:
+        if s.query(User).filter(User.email == email).first():
+            return False, "email_exists"
+        if s.query(SignupRequest).filter(
+            SignupRequest.email == email, SignupRequest.status == "pending"
+        ).first():
+            return False, "signup_already_pending"
+        s.add(SignupRequest(
+            first_name=first_name.strip(), last_name=last_name.strip(), email=email,
+            employee_number=employee_number.strip() or None,
+            password_hash=hash_password(password), status="pending",
+        ))
+    return True, "signup_request_created"
+
+
+def approve_signup_request(request_id: int, reviewer_email: str, role: str = "auditor") -> tuple[bool, str]:
+    """يوافق على طلب حساب: ينشئ المستخدم والاعتماد الفعليين، ويعلّم الطلب كمقبول."""
+    with get_session() as s:
+        req = s.query(SignupRequest).get(request_id)
+        if not req or req.status != "pending":
+            return False, "request_not_found"
+        if s.query(User).filter(User.email == req.email).first():
+            req.status = "rejected"
+            req.reviewed_by = reviewer_email
+            req.reviewed_at = datetime.utcnow()
+            return False, "email_exists"
+
+        new_user = User(
+            email=req.email, name=f"{req.first_name} {req.last_name}".strip(),
+            employee_number=req.employee_number, role=role,
+        )
+        s.add(new_user)
+        s.flush()
+        s.add(Credential(user_id=new_user.id, password_hash=req.password_hash))
+
+        req.status = "approved"
+        req.reviewed_by = reviewer_email
+        req.reviewed_at = datetime.utcnow()
+        req_email = req.email
+    log_action(reviewer_email, "approve", "signup_request", request_id, after={"email": req_email})
+    return True, "signup_approved"
+
+
+def reject_signup_request(request_id: int, reviewer_email: str) -> tuple[bool, str]:
+    with get_session() as s:
+        req = s.query(SignupRequest).get(request_id)
+        if not req or req.status != "pending":
+            return False, "request_not_found"
+        req.status = "rejected"
+        req.reviewed_by = reviewer_email
+        req.reviewed_at = datetime.utcnow()
+        req_email = req.email
+    log_action(reviewer_email, "reject", "signup_request", request_id, after={"email": req_email})
+    return True, "signup_rejected"
+
+
+def create_password_reset_request(email: str, new_password: str) -> tuple[bool, str]:
+    """ينشئ طلب تغيير كلمة مرور بانتظار موافقة الإدارة. يرجع (نجاح, رسالة)."""
+    email = email.strip().lower()
+    with get_session() as s:
+        user = s.query(User).filter(User.email == email).first()
+        if not user:
+            return False, "email_not_found"
+        if s.query(PasswordResetRequest).filter(
+            PasswordResetRequest.email == email, PasswordResetRequest.status == "pending"
+        ).first():
+            return False, "reset_already_pending"
+        s.add(PasswordResetRequest(
+            email=email, new_password_hash=hash_password(new_password), status="pending",
+        ))
+    return True, "reset_request_created"
+
+
+def approve_password_reset(request_id: int, reviewer_email: str) -> tuple[bool, str]:
+    with get_session() as s:
+        req = s.query(PasswordResetRequest).get(request_id)
+        if not req or req.status != "pending":
+            return False, "request_not_found"
+        user = s.query(User).filter(User.email == req.email).first()
+        if not user:
+            req.status = "rejected"
+            req.reviewed_by = reviewer_email
+            req.reviewed_at = datetime.utcnow()
+            return False, "email_not_found"
+
+        cred = s.query(Credential).filter(Credential.user_id == user.id).first()
+        if not cred:
+            cred = Credential(user_id=user.id)
+            s.add(cred)
+        cred.password_hash = req.new_password_hash
+        cred.password_changed_at = datetime.utcnow()
+        cred.failed_attempts = 0
+
+        req.status = "approved"
+        req.reviewed_by = reviewer_email
+        req.reviewed_at = datetime.utcnow()
+        req_email = req.email
+    log_action(reviewer_email, "approve", "password_reset_request", request_id, after={"email": req_email})
+    return True, "reset_approved"
+
+
+def reject_password_reset(request_id: int, reviewer_email: str) -> tuple[bool, str]:
+    with get_session() as s:
+        req = s.query(PasswordResetRequest).get(request_id)
+        if not req or req.status != "pending":
+            return False, "request_not_found"
+        req.status = "rejected"
+        req.reviewed_by = reviewer_email
+        req.reviewed_at = datetime.utcnow()
+        req_email = req.email
+    log_action(reviewer_email, "reject", "password_reset_request", request_id, after={"email": req_email})
+    return True, "reset_rejected"
+
+
 def render_logout_sidebar():
     """يعرض اسم المستخدم الحالي وزر تسجيل الخروج بالشريط الجانبي — يظهر بكل صفحة."""
     from i18n import t  # استيراد محلي لتفادي أي حلقة استيراد دائرية
@@ -128,3 +248,4 @@ def render_logout_sidebar():
         if st.button(t("logout"), key="global_logout_btn", use_container_width=True):
             logout()
             st.rerun()
+
