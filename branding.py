@@ -101,13 +101,6 @@ def apply_theme(direction: str = "rtl"):
 
         /* ---------- العناوين ---------- */
         h1, h2, h3 {{ color: {BRAND_BLUE}; font-weight: 800; }}
-        h1 {{
-            background: linear-gradient(90deg, {BRAND_BLUE} 0%, {BRAND_PURPLE} 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: inline-block;
-        }}
 
         /* ---------- بطاقات المقاييس (Metrics) ---------- */
         [data-testid="stMetric"] {{
