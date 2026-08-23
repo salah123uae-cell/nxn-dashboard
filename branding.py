@@ -79,42 +79,133 @@ def render_sidebar_logo():
 
 
 def apply_theme(direction: str = "rtl"):
-    """يطبّق تنسيقات إضافية (اتجاه الصفحة + ألوان الهوية) على الصفحة الحالية.
-    الشريط الجانبي بلون كحلي داكن متدرّج (مطابق للوحة تحكم NxN الرسمية)."""
+    """يطبّق هوية بصرية شاملة ومبتكرة على كل صفحات النظام: تدرجات لونية، بطاقات
+    عصرية بظلال ناعمة، أزرار متحركة، تبويبات على شكل كبسولات، حقول إدخال أنعم،
+    وجداول أنيقة — كل هذا مبني على ألوان هوية NxN الرسمية."""
     st.markdown(
         f"""
         <style>
         html, body, [class*="css"] {{
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, "Noto Sans Arabic", sans-serif;
         }}
-        .block-container {{ direction: {direction}; }}
-        h1, h2, h3 {{ color: {BRAND_BLUE}; font-weight: 800; }}
+        .block-container {{
+            direction: {direction};
+            padding-top: 2.2rem;
+            max-width: 1200px;
+        }}
 
+        /* ---------- خلفية المحتوى: تدرّج خفيف جدًا بدل الأبيض المسطّح ---------- */
+        [data-testid="stAppViewContainer"] > .main {{
+            background: linear-gradient(180deg, #FAFBFF 0%, #F4F5FC 60%, #F0F1FA 100%);
+        }}
+
+        /* ---------- العناوين ---------- */
+        h1, h2, h3 {{ color: {BRAND_BLUE}; font-weight: 800; }}
+        h1 {{
+            background: linear-gradient(90deg, {BRAND_BLUE} 0%, {BRAND_PURPLE} 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }}
+
+        /* ---------- بطاقات المقاييس (Metrics) ---------- */
         [data-testid="stMetric"] {{
             background: #FFFFFF;
-            border: 1px solid #ECECF4;
-            border-radius: 14px;
-            padding: 14px 16px;
-            box-shadow: 0 2px 8px rgba(30, 34, 170, 0.06);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            border: none;
+            border-top: 3px solid {BRAND_LIME};
+            border-radius: 18px;
+            padding: 18px 20px;
+            box-shadow: 0 4px 18px rgba(30, 34, 170, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }}
         [data-testid="stMetric"]:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(30, 34, 170, 0.12);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(30, 34, 170, 0.16);
         }}
+        [data-testid="stMetricValue"] {{ color: {BRAND_BLUE}; font-weight: 800; }}
 
+        /* ---------- الأزرار: تدرّج لوني مع ظل وحركة رفع عند التحويم ---------- */
         .stButton>button, .stDownloadButton>button, .stFormSubmitButton>button {{
-            background-color: {BRAND_LIME};
+            background: linear-gradient(135deg, {BRAND_LIME} 0%, #2FA81D 100%);
             color: white;
             border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            transition: background-color 0.15s ease, transform 0.1s ease;
+            border-radius: 12px;
+            font-weight: 700;
+            padding: 0.55rem 1.3rem;
+            box-shadow: 0 4px 14px rgba(68, 214, 44, 0.28);
+            transition: all 0.2s ease;
         }}
         .stButton>button:hover, .stDownloadButton>button:hover, .stFormSubmitButton>button:hover {{
-            background-color: {BRAND_PURPLE};
+            background: linear-gradient(135deg, {BRAND_PURPLE} 0%, {BRAND_BLUE} 100%);
             color: white;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(150, 60, 189, 0.32);
+        }}
+        .stButton>button:active, .stFormSubmitButton>button:active {{
+            transform: translateY(0);
+        }}
+
+        /* ---------- التبويبات (st.tabs): شكل كبسولة عصري بدل الخط السفلي التقليدي ---------- */
+        [data-baseweb="tab-list"] {{
+            gap: 6px;
+            background: #EEF0FB;
+            padding: 6px;
+            border-radius: 14px;
+        }}
+        [data-baseweb="tab"] {{
+            border-radius: 10px !important;
+            font-weight: 600;
+            color: {BRAND_BLUE} !important;
+            transition: all 0.2s ease;
+        }}
+        [data-baseweb="tab-highlight"] {{ background: transparent !important; }}
+        [aria-selected="true"][data-baseweb="tab"] {{
+            background: white !important;
+            box-shadow: 0 3px 10px rgba(30,34,170,0.14);
+            color: {BRAND_PURPLE} !important;
+        }}
+
+        /* ---------- الحقول النصية وحقول الأرقام والتاريخ ---------- */
+        .stTextInput input, .stTextArea textarea, .stNumberInput input, .stDateInput input {{
+            border-radius: 12px !important;
+            border: 1.5px solid #E3E4F6 !important;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }}
+        .stTextInput input:focus, .stTextArea textarea:focus, .stNumberInput input:focus {{
+            border-color: {BRAND_PURPLE} !important;
+            box-shadow: 0 0 0 3px rgba(150,60,189,0.12) !important;
+        }}
+
+        /* ---------- القوائم المنسدلة ---------- */
+        [data-baseweb="select"] > div {{
+            border-radius: 12px !important;
+            border: 1.5px solid #E3E4F6 !important;
+        }}
+
+        /* ---------- الحاويات ذات الحدود (st.container(border=True)) ---------- */
+        [data-testid="stVerticalBlockBorderWrapper"] {{
+            border-radius: 16px !important;
+            transition: box-shadow 0.2s ease;
+        }}
+
+        /* ---------- التنبيهات (info/success/warning/error) ---------- */
+        [data-testid="stAlert"] {{
+            border-radius: 14px;
+            border: none;
+        }}
+
+        /* ---------- الفواصل والجداول ---------- */
+        hr {{ border-color: #E3E4F6; }}
+        div[data-testid="stDataFrame"] {{
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 4px 18px rgba(30,34,170,0.07);
+        }}
+        div[data-testid="stDataFrame"] thead tr th {{
+            background: linear-gradient(90deg, {BRAND_BLUE}, {BRAND_PURPLE}) !important;
+            color: white !important;
+            font-weight: 700;
         }}
 
         /* ---------- الشريط الجانبي: كحلي داكن متدرّج، مطابق لهوية NxN الرسمية ---------- */
@@ -149,20 +240,34 @@ def apply_theme(direction: str = "rtl"):
         }}
         /* أزرار تبديل اللغة وتسجيل الخروج بالشريط الجانبي تبقى بألوان الهوية الزاهية */
         [data-testid="stSidebar"] .stButton>button {{
-            background-color: {BRAND_LIME};
+            background: {BRAND_LIME};
             color: #14123A;
             font-weight: 700;
+            box-shadow: none;
         }}
         [data-testid="stSidebar"] .stButton>button:hover {{
-            background-color: {BRAND_PURPLE};
+            background: {BRAND_PURPLE};
             color: white;
         }}
-
-        div[data-testid="stDataFrame"] thead tr th {{
-            background-color: {BRAND_BLUE} !important;
-            color: white !important;
-        }}
         </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_card(content_html: str, accent: str = None):
+    """بطاقة عامة بحواف مدورة وظل ناعم — لتغليف أي محتوى HTML مخصص بمظهر موحّد."""
+    accent = accent or BRAND_LIME
+    st.markdown(
+        f"""
+        <div style="
+            background: white; border-radius: 16px; padding: 20px 22px;
+            box-shadow: 0 4px 16px rgba(30,34,170,0.07);
+            border-right: 4px solid {accent};
+            margin-bottom: 14px;
+        ">
+            {content_html}
+        </div>
         """,
         unsafe_allow_html=True,
     )
