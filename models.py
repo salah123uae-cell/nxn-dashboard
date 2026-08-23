@@ -21,6 +21,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String, nullable=False, unique=True)
     name = Column(String, nullable=False)
+    employee_number = Column(String, nullable=True)
     role = Column(String, nullable=False, default="auditor")  # owner, manager, auditor, branch, viewer
     managed_branch_ids = Column(Text, nullable=False, default="[]")  # JSON list كنص
     phone = Column(String)
@@ -258,3 +259,34 @@ class AuditLog(Base):
         Index("audit_log_entity_idx", "entity_type", "entity_id"),
         Index("audit_log_actor_idx", "actor_email"),
     )
+
+
+class SignupRequest(Base):
+    """طلب إنشاء حساب جديد يقدّمه موظف من صفحة تسجيل الدخول — بانتظار موافقة الإدارة."""
+    __tablename__ = "signup_requests"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    email = Column(String, nullable=False)
+    employee_number = Column(String, nullable=True)
+    password_hash = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="pending")  # pending, approved, rejected
+    reviewed_by = Column(String, nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=now)
+
+    __table_args__ = (Index("signup_requests_status_idx", "status"),)
+
+
+class PasswordResetRequest(Base):
+    """طلب استعادة/تغيير كلمة مرور يقدّمه موظف نسي كلمة مروره — بانتظار موافقة الإدارة."""
+    __tablename__ = "password_reset_requests"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String, nullable=False)
+    new_password_hash = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="pending")  # pending, approved, rejected
+    reviewed_by = Column(String, nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, nullable=False, default=now)
+
+    __table_args__ = (Index("password_reset_requests_status_idx", "status"),)
