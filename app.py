@@ -8,6 +8,7 @@
 """
 import streamlit as st
 from i18n import t, get_lang
+from branding import render_sidebar_logo
 
 st.set_page_config(
     page_title="NXN Quality System | نظام NXN لإدارة الجودة",
@@ -17,6 +18,8 @@ st.set_page_config(
 
 # نقرأ اللغة الحالية فقط للتأكد من إعادة بناء القائمة عند كل تغيير (get_lang يقرأ من session_state)
 _ = get_lang()
+
+render_sidebar_logo()
 
 pages = [
     st.Page("home.py", title=t("nav_home"), url_path="", default=True),
@@ -35,3 +38,4 @@ pages = [
 
 pg = st.navigation(pages, position="sidebar")
 pg.run()
+
