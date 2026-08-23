@@ -5,7 +5,7 @@ from auth import (
 )
 from database import init_db, get_session
 from models import User, Credential, Branch, ChecklistVersion, AuditSection, AuditQuestion
-from branding import render_logo, apply_theme
+from branding import render_logo, apply_theme, render_hero_banner
 from i18n import t, language_switcher, get_lang
 
 lang = get_lang()
@@ -109,8 +109,8 @@ user = current_user()
 if user:
     render_logout_sidebar()
     role_label = ROLE_LABELS_AR.get(user["role"], user["role"])
-    st.success(t("welcome_msg", name=user["name"], role=role_label))
-    st.info(t("nav_hint"))
+    welcome_text = t("welcome_msg", name=user["name"], role=role_label).replace("**", "")
+    render_hero_banner(title=welcome_text, subtitle=t("nav_hint"))
 else:
     tab_login, tab_signup, tab_forgot = st.tabs([
         t("login_tab_login"), t("login_tab_signup"), t("login_tab_forgot"),
@@ -177,3 +177,4 @@ else:
                         st.success(t("reset_request_success"))
                     else:
                         st.error(t("err_" + msg_key))
+
