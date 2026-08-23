@@ -1,5 +1,8 @@
 import streamlit as st
-from auth import login, current_user, ROLE_LABELS_AR, hash_password, render_logout_sidebar
+from auth import (
+    login, current_user, ROLE_LABELS_AR, hash_password, render_logout_sidebar,
+    create_signup_request, create_password_reset_request,
+)
 from database import init_db, get_session
 from models import User, Credential, Branch, ChecklistVersion, AuditSection, AuditQuestion
 from branding import render_logo, apply_theme
@@ -109,18 +112,68 @@ if user:
     st.success(t("welcome_msg", name=user["name"], role=role_label))
     st.info(t("nav_hint"))
 else:
-    st.subheader(t("login_title"))
-    with st.form("login_form"):
-        email = st.text_input(t("email_label").replace(" *", ""))
-        password = st.text_input(t("password_label").replace(" *", ""), type="password")
-        submitted = st.form_submit_button(t("login_btn"))
+    tab_login, tab_signup, tab_forgot = st.tabs([
+        t("login_tab_login"), t("login_tab_signup"), t("login_tab_forgot"),
+    ])
 
-        if submitted:
-            ok, msg = login(email, password)
-            if ok:
-                st.success(msg)
-                st.rerun()
-            else:
-                st.error(msg)
+    with tab_login:
+        st.subheader(t("login_title"))
+        with st.form("login_form"):
+            email = st.text_input(t("email_label").replace(" *", ""))
+            password = st.text_input(t("password_label").replace(" *", ""), type="password")
+            submitted = st.form_submit_button(t("login_btn"))
 
-    st.caption(t("first_time_hint"))
+            if submitted:
+                ok, msg = login(email, password)
+                if ok:
+                    st.success(msg)
+                    st.rerun()
+                else:
+                    st.error(msg)
+
+        st.caption(t("first_time_hint"))
+
+    with tab_signup:
+        st.subheader(t("login_tab_signup"))
+        with st.form("signup_form"):
+            sc1, sc2 = st.columns(2)
+            s_first = sc1.text_input(t("first_name_label"))
+            s_last = sc2.text_input(t("last_name_label"))
+            s_email = st.text_input(t("email_label"))
+            s_emp_num = st.text_input(t("employee_number_label"))
+            s_pass1 = st.text_input(t("new_password_label2"), type="password")
+            s_pass2 = st.text_input(t("confirm_new_password_label"), type="password")
+            signup_submitted = st.form_submit_button(t("signup_submit_btn"))
+
+            if signup_submitted:
+                if not s_first or not s_last or not s_email or not s_pass1:
+                    st.error(t("fill_required"))
+                elif s_pass1 != s_pass2:
+                    st.error(t("password_mismatch"))
+                else:
+                    ok, msg_key = create_signup_request(s_first, s_last, s_email, s_emp_num, s_pass1)
+                    if ok:
+                        st.success(t("signup_success"))
+                    else:
+                        st.error(t("err_" + msg_key))
+
+    with tab_forgot:
+        st.subheader(t("login_tab_forgot"))
+        st.info(t("forgot_password_info"))
+        with st.form("forgot_password_form"):
+            f_email = st.text_input(t("email_label").replace(" *", ""), key="forgot_email")
+            f_pass1 = st.text_input(t("new_password_label2"), type="password", key="forgot_pass1")
+            f_pass2 = st.text_input(t("confirm_new_password_label"), type="password", key="forgot_pass2")
+            forgot_submitted = st.form_submit_button(t("forgot_password_submit_btn"))
+
+            if forgot_submitted:
+                if not f_email or not f_pass1:
+                    st.error(t("fill_required"))
+                elif f_pass1 != f_pass2:
+                    st.error(t("password_mismatch"))
+                else:
+                    ok, msg_key = create_password_reset_request(f_email, f_pass1)
+                    if ok:
+                        st.success(t("reset_request_success"))
+                    else:
+                        st.error(t("err_" + msg_key))
