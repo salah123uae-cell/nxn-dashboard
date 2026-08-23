@@ -1,12 +1,15 @@
-"""Database connection and transactional session management."""
+"""
+إعداد الاتصال بقاعدة البيانات وإنشاء الجلسات (Sessions).
+افتراضيًا يستخدم SQLite (ملف واحد بسيط، بدون أي تثبيت أو إعداد) — مناسب للتشغيل
+المحلي المباشر بدون تعقيد. إذا احتجت PostgreSQL لاحقًا (مثلاً عند النشر أونلاين)،
+يكفي تضبط DATABASE_URL في ملف .env أو st.secrets.
+"""
 import os
 import tempfile
-from contextlib import contextmanager
-from functools import lru_cache
-
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from contextlib import contextmanager
 
 from models import Base
 
@@ -14,9 +17,10 @@ load_dotenv()
 
 
 def _get_setting(key: str, default: str = "") -> str:
-    value = os.getenv(key)
-    if value:
-        return value
+    """يقرأ الإعداد من متغيرات البيئة أولًا، ثم من st.secrets إن وُجد (نشر سحابي)."""
+    val = os.getenv(key)
+    if val:
+        return val
     try:
         import streamlit as st
         if key in st.secrets:
@@ -27,56 +31,70 @@ def _get_setting(key: str, default: str = "") -> str:
 
 
 def _default_sqlite_path() -> str:
+    """
+    يبحث عن أول مجلد قابل للكتابة فعليًا (مجلد المشروع، ثم المجلد الشخصي،
+    ثم المجلد المؤقت للنظام). هذا ضروري لأن بعض بيئات الاستضافة السحابية
+    (مثل Streamlit Cloud) تكون فيها مجلد المشروع نفسه للقراءة فقط.
+    """
     candidates = [os.getcwd(), os.path.expanduser("~"), tempfile.gettempdir()]
-    for directory in candidates:
+    for d in candidates:
         try:
-            test_file = os.path.join(directory, ".write_test_tmp")
-            with open(test_file, "w", encoding="utf-8") as handle:
-                handle.write("x")
+            test_file = os.path.join(d, ".write_test_tmp")
+            with open(test_file, "w") as f:
+                f.write("x")
             os.remove(test_file)
-            return os.path.join(directory, "nxn_quality.db").replace("\\", "/")
+            return os.path.join(d, "nxn_quality.db").replace("\\", "/")
         except Exception:
             continue
     return os.path.join(tempfile.gettempdir(), "nxn_quality.db").replace("\\", "/")
 
 
-APP_ENV = _get_setting("APP_ENV", "development").strip().lower()
-configured_database_url = _get_setting("DATABASE_URL")
+# افتراضيًا: ملف SQLite في أول مجلد قابل للكتابة (صفر إعدادات، ويعمل محليًا وسحابيًا)
+DATABASE_URL = _get_setting("DATABASE_URL", f"sqlite:///{_default_sqlite_path()}")
 
-if APP_ENV in {"production", "prod"}:
-    if not configured_database_url:
-        raise RuntimeError("DATABASE_URL is required in production; refusing SQLite fallback")
-    if not configured_database_url.startswith(("postgres://", "postgresql://", "postgresql+psycopg://", "postgresql+psycopg2://")):
-        raise RuntimeError("Production DATABASE_URL must use PostgreSQL")
-
-DATABASE_URL = configured_database_url or f"sqlite:///{_default_sqlite_path()}"
+# بعض مزوّدي الاستضافة (مثل Neon, Heroku, Railway) يعطون رابطًا يبدأ بـ postgres://
+# لكن SQLAlchemy الحديث (2.x) يشترط postgresql:// — نصحّح الصيغة تلقائيًا هنا.
 if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
-elif DATABASE_URL.startswith("postgresql://"):
-    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
-elif DATABASE_URL.startswith("postgresql+psycopg2://"):
-    DATABASE_URL = DATABASE_URL.replace("postgresql+psycopg2://", "postgresql+psycopg://", 1)
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine_options = {"pool_pre_ping": True, "connect_args": connect_args}
-if DATABASE_URL.startswith("postgresql"):
-    engine_options.update(pool_size=5, max_overflow=10, pool_timeout=10, pool_recycle=300)
-engine = create_engine(DATABASE_URL, **engine_options)
+# نستخدم مكتبة psycopg (الإصدار 3) بدل psycopg2 القديمة، لأنها تدعم أحدث إصدارات
+# بايثون (مثل 3.13/3.14) بعجلات (wheels) جاهزة بدون الحاجة لبناء من المصدر.
+if DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+
+_connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=_connect_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
-@lru_cache(maxsize=1)
 def init_db():
+    """ينشئ كل الجداول في قاعدة البيانات إن لم تكن موجودة، ويضيف أي أعمدة جديدة لجداول موجودة مسبقًا."""
     Base.metadata.create_all(bind=engine)
-    # Index the dominant sort paths used by dashboards, lists, and reports.
-    with engine.begin() as connection:
-        connection.execute(text("CREATE INDEX IF NOT EXISTS audits_created_at_idx ON audits (created_at DESC)"))
-        connection.execute(text("CREATE INDEX IF NOT EXISTS actions_created_at_idx ON corrective_actions (created_at DESC)"))
-        connection.execute(text("CREATE INDEX IF NOT EXISTS audit_log_created_at_idx ON audit_log (created_at DESC)"))
+    _migrate_add_missing_columns()
+
+
+def _migrate_add_missing_columns():
+    """ترحيل بسيط وآمن: يضيف أعمدة جديدة لجدول users القديم إن لم تكن موجودة
+    (بدون حذف أو تعديل أي بيانات حالية). يعمل مع SQLite و PostgreSQL."""
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(engine)
+    if "users" not in inspector.get_table_names():
+        return
+    existing_cols = {c["name"] for c in inspector.get_columns("users")}
+    if "employee_number" not in existing_cols:
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("ALTER TABLE users ADD COLUMN employee_number VARCHAR"))
+                conn.commit()
+        except Exception:
+            pass
 
 
 @contextmanager
 def get_session():
+    """مدير سياق (context manager) لإدارة جلسة قاعدة البيانات بأمان."""
     session = SessionLocal()
     try:
         yield session
