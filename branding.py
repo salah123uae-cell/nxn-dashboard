@@ -253,6 +253,32 @@ def apply_theme(direction: str = "rtl"):
             background: {BRAND_PURPLE};
             color: white;
         }}
+
+        /* ---------- تبديل اللغة: عنصر صغير ثابت بزاوية علوية واحدة دائمًا،
+           بغض النظر عن اتجاه الصفحة (RTL/AR أو LTR/EN) — نفس أسلوب المواقع
+           العالمية. نحدّد الحاوية عبر علامة مميّزة (anchor) تسبقها مباشرة. ---------- */
+        div:has(> #nxn-lang-anchor) {{
+            display: none;
+        }}
+        div:has(> #nxn-lang-anchor) + div {{
+            position: fixed !important;
+            top: 0.6rem;
+            right: 1.3rem;
+            z-index: 999999;
+            width: 100px;
+        }}
+        div:has(> #nxn-lang-anchor) + div [data-baseweb="select"] > div {{
+            border-radius: 20px !important;
+            border: 1.5px solid #E3E4F6 !important;
+            background: white !important;
+            box-shadow: 0 3px 14px rgba(30,34,170,0.16);
+            min-height: 32px !important;
+        }}
+        div:has(> #nxn-lang-anchor) + div [data-baseweb="select"] * {{
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            color: {BRAND_BLUE} !important;
+        }}
         </style>
         """,
         unsafe_allow_html=True,
