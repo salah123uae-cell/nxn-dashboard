@@ -11,7 +11,7 @@
 بعد تسجيل الدخول: تظهر القائمة الكاملة.
 """
 import streamlit as st
-from i18n import t, get_lang
+from i18n import t, get_lang, language_switcher
 from branding import render_sidebar_logo
 from auth import current_user
 
@@ -25,6 +25,10 @@ st.set_page_config(
 _ = get_lang()
 
 render_sidebar_logo()
+
+# تبديل اللغة يُستدعى هنا (بالموجّه) بدل كل صفحة على حدة، ليظهر بنفس الموضع
+# الثابت أعلى الشاشة بكل صفحات النظام دون تكرار الكود.
+language_switcher()
 
 home_page = st.Page("home.py", title=t("nav_home"), url_path="", default=True)
 
