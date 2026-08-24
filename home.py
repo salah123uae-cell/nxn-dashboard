@@ -6,13 +6,11 @@ from auth import (
 from database import init_db, get_session
 from models import User, Credential, Branch, ChecklistVersion, AuditSection, AuditQuestion
 from branding import render_logo, apply_theme, render_hero_banner
-from i18n import t, language_switcher, get_lang
+from i18n import t, get_lang
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo()
-
-language_switcher()
 
 # ---------- التأكد من وجود الجداول (مرة واحدة فقط بكل جلسة، لتفادي الفحص المتكرر) ----------
 if "db_initialized" not in st.session_state:
