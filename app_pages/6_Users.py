@@ -11,12 +11,11 @@ from auth import (
 from database import get_session
 from models import User, Credential, SignupRequest, PasswordResetRequest
 from data_cache import get_branches_cached
-from i18n import t, language_switcher, get_lang
+from i18n import t, get_lang
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
-language_switcher()
 require_role("owner", "manager")
 render_logout_sidebar()
 user = current_user()
@@ -201,3 +200,4 @@ with tab_resets:
                     reject_password_reset(req["id"], user["email"])
                     st.toast(t("reset_rejected_toast"))
                     st.rerun()
+
