@@ -5,12 +5,11 @@ from auth import require_login, current_user, render_logout_sidebar
 from database import get_session
 from models import Audit, Branch, CorrectiveAction, AuditAnswer, AuditQuestion
 from ai_agent import is_ai_configured, summarize_audit, chat_with_assistant, MAX_CHAT_MESSAGES_PER_SESSION
-from i18n import t, language_switcher, get_lang
+from i18n import t, get_lang
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
-language_switcher()
 require_login()
 render_logout_sidebar()
 user = current_user()
@@ -124,3 +123,4 @@ with tab_insights:
                     st.markdown(summary)
                 except Exception as e:
                     st.error(f"حدث خطأ أثناء توليد الملخص: {e}")
+
