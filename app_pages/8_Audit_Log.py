@@ -5,12 +5,11 @@ import pandas as pd
 from auth import require_role, render_logout_sidebar
 from database import get_session
 from models import AuditLog
-from i18n import t, language_switcher, get_lang
+from i18n import t, get_lang
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
-language_switcher()
 require_role("owner", "manager")
 render_logout_sidebar()
 
@@ -38,3 +37,4 @@ if not df.empty:
 
 st.dataframe(df, use_container_width=True, hide_index=True)
 st.caption(t("log_caption", n=len(rows)))
+
