@@ -242,7 +242,7 @@ def apply_theme(direction: str = "rtl"):
             color: #14123A !important;
             font-weight: 700 !important;
         }}
-        /* أزرار تبديل اللغة وتسجيل الخروج بالشريط الجانبي تبقى بألوان الهوية الزاهية */
+        /* أزرار تسجيل الخروج بالشريط الجانبي تبقى بألوان الهوية الزاهية */
         [data-testid="stSidebar"] .stButton>button {{
             background: {BRAND_LIME};
             color: #14123A;
@@ -252,18 +252,6 @@ def apply_theme(direction: str = "rtl"):
         [data-testid="stSidebar"] .stButton>button:hover {{
             background: {BRAND_PURPLE};
             color: white;
-        }}
-        /* قائمة تبديل اللغة المنسدلة بالشريط الجانبي — مندمجة مع الخلفية الداكنة */
-        [data-testid="stSidebar"] [data-baseweb="select"] > div {{
-            background: rgba(255,255,255,0.08) !important;
-            border: 1.5px solid rgba(255,255,255,0.18) !important;
-            color: white !important;
-        }}
-        [data-testid="stSidebar"] [data-baseweb="select"] * {{
-            color: white !important;
-        }}
-        [data-testid="stSidebar"] [data-baseweb="select"] svg {{
-            fill: white !important;
         }}
         </style>
         """,
