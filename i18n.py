@@ -30,7 +30,7 @@ TRANSLATIONS = {
     "created_at_col": {"ar": "تاريخ الإنشاء", "en": "Created At"},
 
     # ---------- app.py (تسجيل الدخول / التهيئة الأولى) ----------
-    "app_title": {"ar": "✅ نظام NXN لإدارة جودة الفروع", "en": "✅ NXN Branch Quality Management System"},
+    "app_title": {"ar": "نظام NXN لإدارة جودة الفروع", "en": "NXN Branch Quality Management System"},
     "app_caption": {"ar": "النسخة البايثونية — Streamlit", "en": "Python Edition — Streamlit"},
     "setup_title": {"ar": "⚙️ التهيئة الأولى — إنشاء حساب المالك", "en": "⚙️ First-Time Setup — Create Owner Account"},
     "setup_info": {"ar": "لا يوجد أي مستخدم في النظام بعد. أنشئ حساب المالك الأول لتبدأ استخدام النظام (تُنشأ أيضًا فروع وأسئلة تجريبية تلقائيًا).",
@@ -248,18 +248,18 @@ TRANSLATIONS = {
     "restore_setup_btn": {"ar": "⬆️ استعادة كل شي من النسخة الاحتياطية", "en": "⬆️ Restore Everything from Backup"},
 
     # ---------- عناوين القائمة الجانبية (تُقرأ ديناميكيًا عند كل تبديل لغة) ----------
-    "nav_home": {"ar": "🏠 الرئيسية", "en": "🏠 Home"},
-    "nav_dashboard": {"ar": "📊 لوحة المعلومات", "en": "📊 Dashboard"},
-    "nav_branches": {"ar": "🏢 الفروع", "en": "🏢 Branches"},
-    "nav_checklist": {"ar": "📋 قوائم الفحص", "en": "📋 Checklist"},
-    "nav_audits": {"ar": "🔍 التدقيقات", "en": "🔍 Audits"},
-    "nav_corrective": {"ar": "🛠️ الإجراءات التصحيحية", "en": "🛠️ Corrective Actions"},
-    "nav_users": {"ar": "👥 المستخدمون", "en": "👥 Users"},
-    "nav_reports": {"ar": "📈 التقارير", "en": "📈 Reports"},
-    "nav_auditlog": {"ar": "📜 سجل النشاط", "en": "📜 Audit Log"},
-    "nav_ai": {"ar": "🤖 المساعد الذكي", "en": "🤖 AI Assistant"},
-    "nav_backup": {"ar": "💾 النسخ الاحتياطي", "en": "💾 Backup"},
-    "nav_help": {"ar": "📖 دليل الاستخدام", "en": "📖 User Guide"},
+    "nav_home": {"ar": "الرئيسية", "en": "Home"},
+    "nav_dashboard": {"ar": "لوحة المعلومات", "en": "Dashboard"},
+    "nav_branches": {"ar": "الفروع", "en": "Branches"},
+    "nav_checklist": {"ar": "قوائم الفحص", "en": "Checklist"},
+    "nav_audits": {"ar": "التدقيقات", "en": "Audits"},
+    "nav_corrective": {"ar": "الإجراءات التصحيحية", "en": "Corrective Actions"},
+    "nav_users": {"ar": "المستخدمون", "en": "Users"},
+    "nav_reports": {"ar": "التقارير", "en": "Reports"},
+    "nav_auditlog": {"ar": "سجل النشاط", "en": "Audit Log"},
+    "nav_ai": {"ar": "المساعد الذكي", "en": "AI Assistant"},
+    "nav_backup": {"ar": "النسخ الاحتياطي", "en": "Backup"},
+    "nav_help": {"ar": "دليل الاستخدام", "en": "User Guide"},
 
     # ---------- تسجيل الدخول: تبويبات وإنشاء حساب واستعادة كلمة المرور ----------
     "login_tab_login": {"ar": "🔐 تسجيل الدخول", "en": "🔐 Log In"},
@@ -340,3 +340,4 @@ def language_switcher():
     if col2.button(en_label, key="lang_btn_en", use_container_width=True) and current != "en":
         st.session_state["lang"] = "en"
         st.rerun()
+
