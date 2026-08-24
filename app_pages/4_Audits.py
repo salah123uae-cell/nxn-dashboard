@@ -8,12 +8,11 @@ from database import get_session
 from models import Audit, AuditAnswer, AuditQuestion, Branch, CorrectiveAction
 from utils import generate_reference, calculate_audit_score, score_badge, export_audits_to_excel
 from data_cache import get_branches_by_id_cached, get_active_branches_cached, get_questions_for_version_cached, get_sections_cached
-from i18n import t, language_switcher, get_lang
+from i18n import t, get_lang
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
-language_switcher()
 require_login()
 render_logout_sidebar()
 user = current_user()
@@ -223,3 +222,4 @@ with tab_conduct:
                     log_action(user["email"], "close", "audit", audit_id)
                 st.success(t("audit_closed_msg"))
                 st.rerun()
+
