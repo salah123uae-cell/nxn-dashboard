@@ -205,6 +205,17 @@ def apply_theme(direction: str = "rtl"):
         [data-testid="stSidebar"] {{
             background: linear-gradient(180deg, #1E1B4B 0%, #14123A 100%);
         }}
+        /* إعادة ترتيب بصري: الشعار المخصّص يظهر أولًا (فوق)، ثم قائمة التنقّل الرسمية تحته مباشرة */
+        [data-testid="stSidebarContent"] {{
+            display: flex;
+            flex-direction: column;
+        }}
+        [data-testid="stSidebarNav"] {{
+            order: 2;
+        }}
+        [data-testid="stSidebarUserContent"] {{
+            order: 1;
+        }}
         [data-testid="stSidebar"] p,
         [data-testid="stSidebar"] span,
         [data-testid="stSidebar"] label,
@@ -241,6 +252,18 @@ def apply_theme(direction: str = "rtl"):
         [data-testid="stSidebar"] .stButton>button:hover {{
             background: {BRAND_PURPLE};
             color: white;
+        }}
+        /* قائمة تبديل اللغة المنسدلة بالشريط الجانبي — مندمجة مع الخلفية الداكنة */
+        [data-testid="stSidebar"] [data-baseweb="select"] > div {{
+            background: rgba(255,255,255,0.08) !important;
+            border: 1.5px solid rgba(255,255,255,0.18) !important;
+            color: white !important;
+        }}
+        [data-testid="stSidebar"] [data-baseweb="select"] * {{
+            color: white !important;
+        }}
+        [data-testid="stSidebar"] [data-baseweb="select"] svg {{
+            fill: white !important;
         }}
         </style>
         """,
