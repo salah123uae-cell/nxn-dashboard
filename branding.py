@@ -78,6 +78,22 @@ def render_sidebar_logo():
     )
 
 
+def render_dev_credit():
+    """يعرض نص نسب تطوير النظام أعلى كل صفحة (شريط رفيع وواضح)."""
+    st.markdown(
+        f"""
+        <div style="
+            text-align:center; font-size:13px; color:{BRAND_BLUE};
+            font-weight:700; padding:8px 12px; margin-bottom:6px;
+            background:#F1F2FC; border-radius:10px;
+        ">
+            يتم تطوير هذا النظام من قبل قائد فريق تميز المنتجات والتدريب صلاح المازمي
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def apply_theme(direction: str = "rtl"):
     """يطبّق هوية بصرية شاملة ومبتكرة على كل صفحات النظام: تدرجات لونية، بطاقات
     عصرية بظلال ناعمة، أزرار متحركة، تبويبات على شكل كبسولات، حقول إدخال أنعم،
@@ -297,22 +313,6 @@ def render_card(content_html: str, accent: str = None):
             margin-bottom: 14px;
         ">
             {content_html}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def render_dev_credit():
-    """يعرض نص نسب تطوير النظام أعلى كل صفحة (شريط رفيع وواضح)."""
-    st.markdown(
-        f"""
-        <div style="
-            text-align:center; font-size:13px; color:{BRAND_BLUE};
-            font-weight:700; padding:8px 12px; margin-bottom:6px;
-            background:#F1F2FC; border-radius:10px;
-        ">
-            يتم تطوير هذا النظام من قبل قائد فريق تميز المنتجات والتدريب
         </div>
         """,
         unsafe_allow_html=True,
