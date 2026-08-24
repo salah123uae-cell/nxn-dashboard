@@ -6,12 +6,11 @@ from datetime import datetime
 from auth import require_login, current_user, log_action, render_logout_sidebar
 from database import get_session
 from models import CorrectiveAction, Audit
-from i18n import t, language_switcher, get_lang
+from i18n import t, get_lang
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
-language_switcher()
 require_login()
 render_logout_sidebar()
 user = current_user()
@@ -78,3 +77,4 @@ if not df.empty:
         st.info(t("no_action_update_permission"))
 else:
     st.success(t("no_actions"))
+
