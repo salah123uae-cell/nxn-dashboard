@@ -3,12 +3,11 @@ from branding import render_logo, apply_theme
 
 from auth import require_role, current_user, render_logout_sidebar, log_action
 from backup import export_all_data, import_all_data
-from i18n import t, language_switcher, get_lang
+from i18n import t, get_lang
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
-language_switcher()
 require_role("owner")
 render_logout_sidebar()
 user = current_user()
@@ -47,3 +46,4 @@ if uploaded is not None:
             st.success(f"{t('import_success')} {counts}")
         except Exception as e:
             st.error(f"{t('import_error')}: {e}")
+
