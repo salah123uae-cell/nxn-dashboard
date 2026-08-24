@@ -26,6 +26,8 @@ _ = get_lang()
 
 render_sidebar_logo()
 
+st.sidebar.write(f"DEBUG user={current_user()}")
+
 home_page = st.Page("home.py", title=t("nav_home"), url_path="", default=True)
 
 if current_user():
