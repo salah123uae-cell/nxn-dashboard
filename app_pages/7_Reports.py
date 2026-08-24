@@ -7,12 +7,11 @@ from database import get_session
 from models import Audit, AuditAnswer, AuditQuestion
 from utils import export_audit_report_pdf, export_audits_to_excel
 from data_cache import get_branches_by_id_cached
-from i18n import t, language_switcher, get_lang
+from i18n import t, get_lang
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
-language_switcher()
 require_login()
 render_logout_sidebar()
 user = current_user()
@@ -71,3 +70,4 @@ if not df_all.empty:
     excel_bytes = export_audits_to_excel(df_all)
     st.download_button(t("export_all_excel_btn"), data=excel_bytes, file_name="all_audits.xlsx",
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
