@@ -12,7 +12,7 @@
 """
 import streamlit as st
 from i18n import t, get_lang, language_switcher
-from branding import render_sidebar_logo
+from branding import render_sidebar_logo, render_dev_credit
 from auth import current_user
 
 st.set_page_config(
@@ -25,6 +25,10 @@ st.set_page_config(
 _ = get_lang()
 
 render_sidebar_logo()
+
+# نص نسب تطوير النظام يظهر أعلى كل صفحة (يُستدعى من الموجّه ليظهر بنفس الموضع
+# الثابت بكل صفحات النظام دون تكرار الكود بكل ملف).
+render_dev_credit()
 
 # تبديل اللغة يُستدعى هنا (بالموجّه) بدل كل صفحة على حدة، ليظهر بنفس الموضع
 # الثابت أعلى الشاشة بكل صفحات النظام دون تكرار الكود.
