@@ -2,12 +2,11 @@ import streamlit as st
 from branding import render_logo, apply_theme, BRAND_LIME, BRAND_BLUE, BRAND_PURPLE
 
 from auth import require_login, current_user, render_logout_sidebar
-from i18n import t, language_switcher, get_lang
+from i18n import t, get_lang
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
-language_switcher()
 require_login()
 render_logout_sidebar()
 user = current_user()
@@ -76,7 +75,7 @@ with tab_guide:
 لحماية بياناتك من أي طارئ.
 
 ### 🌐 تبديل اللغة
-زرّا "العربية | English" بأسفل القائمة الجانبية يبدّلان لغة الواجهة بالكامل فورًا.
+قائمة تبديل اللغة أعلى الصفحة تبدّل لغة الواجهة بالكامل فورًا.
 
 ---
 *آخر تحديث لهذا الدليل: يُحدَّث هذا الدليل مع كل تحديث جديد بالنظام.*
@@ -141,8 +140,8 @@ Ask about system data or get a smart summary and recommendations for any submitt
 "Backup" page to protect your data from any unexpected issue.
 
 ### 🌐 Language Switching
-The "العربية | English" buttons at the bottom of the sidebar switch the entire
-interface language instantly.
+The language dropdown at the top of the page switches the entire interface language
+instantly.
 
 ---
 *This guide is kept up to date with every new system update.*
@@ -221,3 +220,4 @@ with tab_tour:
             if st.button(t("tour_finish"), use_container_width=True, key="tour_finish_btn"):
                 st.session_state["tour_step"] = 0
                 st.rerun()
+
