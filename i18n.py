@@ -1,7 +1,7 @@
 """
 وحدة دعم تعدد اللغات (i18n) لكل صفحات النظام — عربي/إنجليزي.
 تحفظ اللغة المختارة في st.session_state وتوفر دالة t(key) للترجمة،
-ودالة language_switcher() لعرض قائمة اختيار اللغة بالشريط الجانبي.
+ودالة language_switcher() لعرض قائمة اختيار اللغة أعلى المحتوى الرئيسي.
 """
 import streamlit as st
 
@@ -327,19 +327,22 @@ def t(key: str, **kwargs) -> str:
 
 
 def language_switcher():
-    """يعرض قائمة منسدلة واحدة لتبديل اللغة بالشريط الجانبي (بأسلوب مبسّط شائع
-    بمواقع الشركات العالمية: أيقونة كرة أرضية + اسم اللغة، بدل زرّين منفصلين)."""
+    """يعرض قائمة منسدلة صغيرة أعلى يمين المحتوى الرئيسي لتبديل اللغة — نفس
+    تموضع مواقع الشركات العالمية (Google, Microsoft...) بدل وضعها بالشريط
+    الجانبي. تظهر بنفس المكان بكل صفحات النظام لأنها تُستدعى من الموجّه (app.py)."""
     current = get_lang()
     options = ["ar", "en"]
-    labels = {"ar": "🌐 العربية", "en": "🌐 English"}
-    choice = st.sidebar.selectbox(
-        "language_switcher_select",
-        options,
-        index=options.index(current),
-        format_func=lambda code: labels[code],
-        key="lang_select",
-        label_visibility="collapsed",
-    )
+    labels = {"ar": "🌐 AR", "en": "🌐 EN"}
+    spacer, corner = st.columns([9, 1])
+    with corner:
+        choice = st.selectbox(
+            "language_switcher_select",
+            options,
+            index=options.index(current),
+            format_func=lambda code: labels[code],
+            key="lang_select",
+            label_visibility="collapsed",
+        )
     if choice != current:
         st.session_state["lang"] = choice
         st.rerun()
