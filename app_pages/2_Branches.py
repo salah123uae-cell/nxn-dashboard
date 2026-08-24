@@ -6,12 +6,11 @@ from auth import require_login, current_user, log_action, render_logout_sidebar
 from database import get_session
 from models import Branch
 from data_cache import get_branches_cached, clear_reference_cache
-from i18n import t, language_switcher, get_lang
+from i18n import t, get_lang
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
-language_switcher()
 require_login()
 render_logout_sidebar()
 user = current_user()
@@ -82,3 +81,4 @@ if can_edit:
             st.rerun()
 else:
     st.info(t("no_branch_edit_permission"))
+
