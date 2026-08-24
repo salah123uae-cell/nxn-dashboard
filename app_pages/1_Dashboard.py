@@ -8,12 +8,11 @@ from auth import require_login, current_user, render_logout_sidebar
 from database import get_session
 from models import Audit, CorrectiveAction
 from data_cache import get_branches_by_id_cached
-from i18n import t, language_switcher, get_lang
+from i18n import t, get_lang
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo(size="small")
-language_switcher()
 require_login()
 render_logout_sidebar()
 user = current_user()
@@ -184,3 +183,4 @@ if open_actions:
     st.dataframe(adf, use_container_width=True, hide_index=True)
 else:
     st.success(t("no_open_actions"))
+
