@@ -327,17 +327,20 @@ def t(key: str, **kwargs) -> str:
 
 
 def language_switcher():
-    """يعرض زرّي تبديل اللغة بالشريط الجانبي (عربي/إنجليزي) — أزرار Streamlit حقيقية،
-    تعتمد فقط على session_state (بدون query params) لتفادي أي تعارض مع نظام
-    التنقّل الداخلي لـ Streamlit بين صفحات التطبيق."""
+    """يعرض قائمة منسدلة واحدة لتبديل اللغة بالشريط الجانبي (بأسلوب مبسّط شائع
+    بمواقع الشركات العالمية: أيقونة كرة أرضية + اسم اللغة، بدل زرّين منفصلين)."""
     current = get_lang()
-    col1, col2 = st.sidebar.columns(2)
-    ar_label = "🔵 العربية" if current == "ar" else "العربية"
-    en_label = "🔵 English" if current == "en" else "English"
-    if col1.button(ar_label, key="lang_btn_ar", use_container_width=True) and current != "ar":
-        st.session_state["lang"] = "ar"
-        st.rerun()
-    if col2.button(en_label, key="lang_btn_en", use_container_width=True) and current != "en":
-        st.session_state["lang"] = "en"
+    options = ["ar", "en"]
+    labels = {"ar": "🌐 العربية", "en": "🌐 English"}
+    choice = st.sidebar.selectbox(
+        "language_switcher_select",
+        options,
+        index=options.index(current),
+        format_func=lambda code: labels[code],
+        key="lang_select",
+        label_visibility="collapsed",
+    )
+    if choice != current:
+        st.session_state["lang"] = choice
         st.rerun()
 
