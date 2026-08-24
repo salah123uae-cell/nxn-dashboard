@@ -303,6 +303,22 @@ def render_card(content_html: str, accent: str = None):
     )
 
 
+def render_dev_credit():
+    """يعرض نص نسب تطوير النظام أعلى كل صفحة (شريط رفيع وواضح)."""
+    st.markdown(
+        f"""
+        <div style="
+            text-align:center; font-size:13px; color:{BRAND_BLUE};
+            font-weight:700; padding:8px 12px; margin-bottom:6px;
+            background:#F1F2FC; border-radius:10px;
+        ">
+            يتم تطوير هذا النظام من قبل قائد فريق تميز المنتجات والتدريب
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_hero_banner(title: str, subtitle: str = ""):
     """بطاقة ترحيبية بتدرّج بنفسجي-أزرق (نفس أسلوب لوحة nxn الرسمية) — للاستخدام أعلى الصفحة الرئيسية."""
     subtitle_html = f'<div style="font-size:15px; color:#EDEBFF; margin-top:8px; line-height:1.6;">{subtitle}</div>' if subtitle else ""
