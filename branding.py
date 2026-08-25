@@ -78,26 +78,8 @@ def render_sidebar_logo():
     )
 
 
-def render_dev_credit():
-    """يعرض نص نسب تطوير النظام أعلى كل صفحة (شريط رفيع وواضح)."""
-    st.markdown(
-        f"""
-        <div style="
-            text-align:center; font-size:13px; color:{BRAND_BLUE};
-            font-weight:700; padding:8px 12px; margin-bottom:6px;
-            background:#F1F2FC; border-radius:10px;
-        ">
-            يتم تطوير هذا النظام من قبل قائد فريق تميز المنتجات والتدريب صلاح المازمي
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
 def apply_theme(direction: str = "rtl"):
-    """يطبّق هوية بصرية شاملة ومبتكرة على كل صفحات النظام: تدرجات لونية، بطاقات
-    عصرية بظلال ناعمة، أزرار متحركة، تبويبات على شكل كبسولات، حقول إدخال أنعم،
-    وجداول أنيقة — كل هذا مبني على ألوان هوية NxN الرسمية."""
+    """يطبّق هوية بصرية شاملة ومبتكرة على كل صفحات النظام."""
     st.markdown(
         f"""
         <style>
@@ -110,15 +92,12 @@ def apply_theme(direction: str = "rtl"):
             max-width: 1200px;
         }}
 
-        /* ---------- خلفية المحتوى: تدرّج خفيف جدًا بدل الأبيض المسطّح ---------- */
         [data-testid="stAppViewContainer"] > .main {{
             background: linear-gradient(180deg, #FAFBFF 0%, #F4F5FC 60%, #F0F1FA 100%);
         }}
 
-        /* ---------- العناوين ---------- */
         h1, h2, h3 {{ color: {BRAND_BLUE}; font-weight: 800; }}
 
-        /* ---------- بطاقات المقاييس (Metrics) ---------- */
         [data-testid="stMetric"] {{
             background: #FFFFFF;
             border: none;
@@ -134,7 +113,6 @@ def apply_theme(direction: str = "rtl"):
         }}
         [data-testid="stMetricValue"] {{ color: {BRAND_BLUE}; font-weight: 800; }}
 
-        /* ---------- الأزرار: تدرّج لوني مع ظل وحركة رفع عند التحويم ---------- */
         .stButton>button, .stDownloadButton>button, .stFormSubmitButton>button {{
             background: linear-gradient(135deg, {BRAND_LIME} 0%, #2FA81D 100%);
             color: white;
@@ -155,7 +133,6 @@ def apply_theme(direction: str = "rtl"):
             transform: translateY(0);
         }}
 
-        /* ---------- التبويبات (st.tabs): شكل كبسولة عصري بدل الخط السفلي التقليدي ---------- */
         [data-baseweb="tab-list"] {{
             gap: 6px;
             background: #EEF0FB;
@@ -175,7 +152,6 @@ def apply_theme(direction: str = "rtl"):
             color: {BRAND_PURPLE} !important;
         }}
 
-        /* ---------- الحقول النصية وحقول الأرقام والتاريخ ---------- */
         .stTextInput input, .stTextArea textarea, .stNumberInput input, .stDateInput input {{
             border-radius: 12px !important;
             border: 1.5px solid #E3E4F6 !important;
@@ -186,25 +162,21 @@ def apply_theme(direction: str = "rtl"):
             box-shadow: 0 0 0 3px rgba(150,60,189,0.12) !important;
         }}
 
-        /* ---------- القوائم المنسدلة ---------- */
         [data-baseweb="select"] > div {{
             border-radius: 12px !important;
             border: 1.5px solid #E3E4F6 !important;
         }}
 
-        /* ---------- الحاويات ذات الحدود (st.container(border=True)) ---------- */
         [data-testid="stVerticalBlockBorderWrapper"] {{
             border-radius: 16px !important;
             transition: box-shadow 0.2s ease;
         }}
 
-        /* ---------- التنبيهات (info/success/warning/error) ---------- */
         [data-testid="stAlert"] {{
             border-radius: 14px;
             border: none;
         }}
 
-        /* ---------- الفواصل والجداول ---------- */
         hr {{ border-color: #E3E4F6; }}
         div[data-testid="stDataFrame"] {{
             border-radius: 14px;
@@ -217,11 +189,9 @@ def apply_theme(direction: str = "rtl"):
             font-weight: 700;
         }}
 
-        /* ---------- الشريط الجانبي: كحلي داكن متدرّج، مطابق لهوية NxN الرسمية ---------- */
         [data-testid="stSidebar"] {{
             background: linear-gradient(180deg, #1E1B4B 0%, #14123A 100%);
         }}
-        /* إعادة ترتيب بصري: الشعار المخصّص يظهر أولًا (فوق)، ثم قائمة التنقّل الرسمية تحته مباشرة */
         [data-testid="stSidebarContent"] {{
             display: flex;
             flex-direction: column;
@@ -241,7 +211,6 @@ def apply_theme(direction: str = "rtl"):
         [data-testid="stSidebar"] hr {{
             border-color: rgba(255,255,255,0.12) !important;
         }}
-        /* روابط التنقّل بالقائمة الجانبية */
         [data-testid="stSidebar"] a,
         [data-testid="stSidebarNav"] a {{
             color: #DADCFF !important;
@@ -258,7 +227,6 @@ def apply_theme(direction: str = "rtl"):
             color: #14123A !important;
             font-weight: 700 !important;
         }}
-        /* أزرار تسجيل الخروج بالشريط الجانبي تبقى بألوان الهوية الزاهية */
         [data-testid="stSidebar"] .stButton>button {{
             background: {BRAND_LIME};
             color: #14123A;
@@ -270,9 +238,6 @@ def apply_theme(direction: str = "rtl"):
             color: white;
         }}
 
-        /* ---------- تبديل اللغة: عنصر صغير ثابت بزاوية علوية واحدة دائمًا،
-           بغض النظر عن اتجاه الصفحة (RTL/AR أو LTR/EN) — نفس أسلوب المواقع
-           العالمية. نحدّد الحاوية عبر علامة مميّزة (anchor) تسبقها مباشرة. ---------- */
         div:has(> #nxn-lang-anchor) {{
             display: none;
         }}
@@ -302,7 +267,7 @@ def apply_theme(direction: str = "rtl"):
 
 
 def render_card(content_html: str, accent: str = None):
-    """بطاقة عامة بحواف مدورة وظل ناعم — لتغليف أي محتوى HTML مخصص بمظهر موحّد."""
+    """بطاقة عامة بحواف مدورة وظل ناعم."""
     accent = accent or BRAND_LIME
     st.markdown(
         f"""
@@ -319,8 +284,24 @@ def render_card(content_html: str, accent: str = None):
     )
 
 
+def render_dev_credit():
+    """يعرض نص نسب تطوير النظام أعلى كل صفحة."""
+    st.markdown(
+        f"""
+        <div style="
+            text-align:center; font-size:13px; color:{BRAND_BLUE};
+            font-weight:700; padding:8px 12px; margin-bottom:6px;
+            background:#F1F2FC; border-radius:10px;
+        ">
+            يتم تطوير هذا النظام من قبل قائد فريق تميز المنتجات والتدريب
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_hero_banner(title: str, subtitle: str = ""):
-    """بطاقة ترحيبية بتدرّج بنفسجي-أزرق (نفس أسلوب لوحة nxn الرسمية) — للاستخدام أعلى الصفحة الرئيسية."""
+    """بطاقة ترحيبية بتدرّج بنفسجي-أزرق."""
     subtitle_html = f'<div style="font-size:15px; color:#EDEBFF; margin-top:8px; line-height:1.6;">{subtitle}</div>' if subtitle else ""
     st.markdown(
         f"""
