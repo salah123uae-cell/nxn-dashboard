@@ -88,7 +88,7 @@ def apply_theme(direction: str = "rtl"):
         }}
         .block-container {{
             direction: {direction};
-            padding-top: 2.2rem;
+            padding-top: 4.2rem;
             max-width: 1200px;
         }}
 
