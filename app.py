@@ -19,6 +19,7 @@ st.set_page_config(
     page_title="NXN Quality System | نظام NXN لإدارة الجودة",
     page_icon="✅",
     layout="wide",
+    initial_sidebar_state="collapsed",
 )
 
 # نقرأ اللغة الحالية فقط للتأكد من إعادة بناء القائمة عند كل تغيير (get_lang يقرأ من session_state)
