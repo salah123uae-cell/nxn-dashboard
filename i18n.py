@@ -45,7 +45,7 @@ TRANSLATIONS = {
     "account_created": {"ar": "🎉 تم إنشاء الحساب بنجاح! سجّل الدخول الآن من الأسفل.", "en": "🎉 Account created successfully! Log in below."},
     "welcome_msg": {"ar": "مرحبًا **{name}** — الدور: {role}", "en": "Welcome **{name}** — Role: {role}"},
     "nav_hint": {"ar": "استخدم القائمة الجانبية للتنقّل بين صفحات النظام.", "en": "Use the sidebar to navigate between system pages."},
-    "login_title": {"ar": "🔐 تسجيل الدخول", "en": "🔐 Login"},
+    "login_title": {"ar": "تسجيل الدخول", "en": "Login"},
     "login_btn": {"ar": "دخول", "en": "Log in"},
     "first_time_hint": {"ar": "أول مرة؟ أنشئ حساب المالك من النموذج أعلاه.", "en": "First time? Create the owner account from the form above."},
 
@@ -262,9 +262,9 @@ TRANSLATIONS = {
     "nav_help": {"ar": "دليل الاستخدام", "en": "User Guide"},
 
     # ---------- تسجيل الدخول: تبويبات وإنشاء حساب واستعادة كلمة المرور ----------
-    "login_tab_login": {"ar": "🔐 تسجيل الدخول", "en": "🔐 Log In"},
-    "login_tab_signup": {"ar": "🆕 إنشاء حساب جديد", "en": "🆕 Create Account"},
-    "login_tab_forgot": {"ar": "❓ نسيت كلمة المرور", "en": "❓ Forgot Password"},
+    "login_tab_login": {"ar": "تسجيل الدخول", "en": "Log In"},
+    "login_tab_signup": {"ar": "إنشاء حساب جديد", "en": "Create Account"},
+    "login_tab_forgot": {"ar": "نسيت كلمة المرور", "en": "Forgot Password"},
     "first_name_label": {"ar": "الاسم الأول *", "en": "First Name *"},
     "last_name_label": {"ar": "الاسم الأخير *", "en": "Last Name *"},
     "employee_number_label": {"ar": "الرقم الوظيفي", "en": "Employee Number"},
