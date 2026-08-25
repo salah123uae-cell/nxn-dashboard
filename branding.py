@@ -237,29 +237,6 @@ def apply_theme(direction: str = "rtl"):
             background: {BRAND_PURPLE};
             color: white;
         }}
-
-        div:has(> #nxn-lang-anchor) {{
-            display: none;
-        }}
-        div:has(> #nxn-lang-anchor) + div {{
-            position: fixed !important;
-            top: 0.6rem;
-            right: 1.3rem;
-            z-index: 999999;
-            width: 100px;
-        }}
-        div:has(> #nxn-lang-anchor) + div [data-baseweb="select"] > div {{
-            border-radius: 20px !important;
-            border: 1.5px solid #E3E4F6 !important;
-            background: white !important;
-            box-shadow: 0 3px 14px rgba(30,34,170,0.16);
-            min-height: 32px !important;
-        }}
-        div:has(> #nxn-lang-anchor) + div [data-baseweb="select"] * {{
-            font-size: 12px !important;
-            font-weight: 700 !important;
-            color: {BRAND_BLUE} !important;
-        }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -267,7 +244,7 @@ def apply_theme(direction: str = "rtl"):
 
 
 def render_card(content_html: str, accent: str = None):
-    """بطاقة عامة بحواف مدورة وظل ناعم."""
+    """بطاقة عامة بحواف مدورة وظل ناعم — لتغليف أي محتوى HTML مخصص بمظهر موحّد."""
     accent = accent or BRAND_LIME
     st.markdown(
         f"""
@@ -285,7 +262,7 @@ def render_card(content_html: str, accent: str = None):
 
 
 def render_dev_credit():
-    """يعرض نص نسب تطوير النظام أعلى كل صفحة."""
+    """يعرض نص نسب تطوير النظام أعلى كل صفحة (شريط رفيع وواضح)."""
     st.markdown(
         f"""
         <div style="
@@ -301,7 +278,7 @@ def render_dev_credit():
 
 
 def render_hero_banner(title: str, subtitle: str = ""):
-    """بطاقة ترحيبية بتدرّج بنفسجي-أزرق."""
+    """بطاقة ترحيبية بتدرّج بنفسجي-أزرق (نفس أسلوب لوحة nxn الرسمية) — للاستخدام أعلى الصفحة الرئيسية."""
     subtitle_html = f'<div style="font-size:15px; color:#EDEBFF; margin-top:8px; line-height:1.6;">{subtitle}</div>' if subtitle else ""
     st.markdown(
         f"""
