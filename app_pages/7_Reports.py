@@ -23,11 +23,14 @@ branches_by_id = get_branches_by_id_cached()
 
 with get_session() as s:
     audits = s.query(Audit).filter(Audit.status.in_(["submitted", "reviewed", "closed"])).order_by(Audit.created_at.desc()).all()
+    # نستخرج البيانات المطلوبة كقيم بسيطة وإحنا لسا داخل الجلسة، لتفادي الوصول
+    # لأعمدة الكائنات بعد إغلاق الجلسة (DetachedInstanceError).
+    audits_data = [{"id": a.id, "reference": a.reference, "branch_id": a.branch_id} for a in audits]
 
-if not audits:
+if not audits_data:
     st.info(t("no_submitted_audits"))
 else:
-    options = {f"{a.reference} - {branches_by_id[a.branch_id]['name_ar'] if a.branch_id in branches_by_id else ''}": a.id for a in audits}
+    options = {f"{a['reference']} - {branches_by_id[a['branch_id']]['name_ar'] if a['branch_id'] in branches_by_id else ''}": a["id"] for a in audits_data}
     choice = st.selectbox(t("select_audit_report"), list(options.keys()))
     audit_id = options[choice]
 
