@@ -18,19 +18,19 @@ OWNER_PASSWORD = os.getenv("OWNER_PASSWORD", "ChangeMe123!")
 
 
 def run():
-    print("🔧 إنشاء الجداول...")
+    print("إنشاء الجداول...")
     init_db()
 
     with get_session() as s:
         existing = s.query(User).filter(User.email == OWNER_EMAIL).first()
         if existing:
-            print(f"✅ المستخدم المالك موجود مسبقًا: {OWNER_EMAIL}")
+            print(f"المستخدم المالك موجود مسبقًا: {OWNER_EMAIL}")
         else:
             owner = User(email=OWNER_EMAIL, name=OWNER_NAME, role="owner")
             s.add(owner)
             s.flush()  # للحصول على owner.id
             s.add(Credential(user_id=owner.id, password_hash=hash_password(OWNER_PASSWORD)))
-            print(f"✅ تم إنشاء المستخدم المالك: {OWNER_EMAIL} / {OWNER_PASSWORD}")
+            print(f"تم إنشاء المستخدم المالك: {OWNER_EMAIL} / {OWNER_PASSWORD}")
 
         if s.query(Branch).count() == 0:
             s.add_all([
@@ -39,12 +39,12 @@ def run():
                 Branch(code="BR-002", name_ar="فرع جدة", name_en="Jeddah Branch",
                        region="مكة المكرمة", city="جدة", status="active"),
             ])
-            print("✅ تم إنشاء فروع تجريبية")
+            print("تم إنشاء فروع تجريبية")
 
         if s.query(ChecklistVersion).count() == 0:
             s.add(ChecklistVersion(code="QV1", name_ar="نسخة الفحص الأولى", name_en="Checklist v1",
                                     status="active", created_by=OWNER_EMAIL))
-            print("✅ تم إنشاء نسخة تشيك ليست QV1")
+            print("تم إنشاء نسخة تشيك ليست QV1")
 
         if s.query(AuditSection).count() == 0:
             sec1 = AuditSection(code="SEC-SAFETY", name_ar="السلامة", name_en="Safety",
@@ -72,10 +72,11 @@ def run():
                               question_en="Was the customer greeted within 2 minutes?",
                               weight=15, checklist_version="QV1", sort_order=2),
             ])
-            print("✅ تم إنشاء أقسام وأسئلة تجريبية")
+            print("تم إنشاء أقسام وأسئلة تجريبية")
 
-    print("\n🎉 التهيئة اكتملت بنجاح.")
+    print("\nالتهيئة اكتملت بنجاح.")
 
 
 if __name__ == "__main__":
     run()
+
