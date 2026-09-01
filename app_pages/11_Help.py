@@ -24,7 +24,7 @@ tab_guide, tab_tour = st.tabs([t("help_tab_guide"), t("help_tab_tour")])
 with tab_guide:
     GUIDE_SECTIONS = [
         {
-            "icon": "🗂️", "accent": BRAND_BLUE,
+            "accent": BRAND_BLUE,
             "title": {"ar": "نظرة عامة", "en": "Overview"},
             "body": {
                 "ar": "نظام NXN لإدارة جودة الفروع يساعدك على تنظيم عمليات تدقيق الجودة بكل "
@@ -35,7 +35,7 @@ with tab_guide:
             },
         },
         {
-            "icon": "👤", "accent": BRAND_PURPLE,
+            "accent": BRAND_PURPLE,
             "title": {"ar": "الأدوار والصلاحيات", "en": "Roles & Permissions"},
             "table": [
                 {"ar": ("مالك النظام", "كل الصلاحيات، بما فيها إدارة المستخدمين والنسخ الاحتياطي"),
@@ -51,22 +51,22 @@ with tab_guide:
             ],
         },
         {
-            "icon": "📊", "accent": BRAND_LIME,
+            "accent": BRAND_LIME,
             "title": {"ar": "لوحة المعلومات", "en": "Dashboard"},
             "body": {
                 "ar": "**لوحة حالة الفروع**: بطاقات ملوّنة تعطيك نظرة سريعة على أداء كل فرع "
-                      "(🟢 أخضر = ممتاز 90%+، 🟡 برتقالي = جيد 75-89%، 🔴 أحمر = يحتاج متابعة).\n\n"
+                      "(أخضر = ممتاز 90%+، برتقالي = جيد 75-89%، أحمر = يحتاج متابعة).\n\n"
                       "**الفلاتر**: صفّي البيانات حسب فرع معيّن أو فترة زمنية محددة.\n\n"
                       "**الرسوم البيانية**: توزيع حالات التدقيق ومتوسط النتيجة لكل فرع.",
                 "en": "**Branch Status Board**: colored cards give you an instant view of each "
-                      "branch's performance (🟢 Green = excellent 90%+, 🟡 Orange = good "
-                      "75-89%, 🔴 Red = needs attention).\n\n"
+                      "branch's performance (Green = excellent 90%+, Orange = good "
+                      "75-89%, Red = needs attention).\n\n"
                       "**Filters**: filter data by specific branch or date range.\n\n"
                       "**Charts**: audit status distribution and average score per branch.",
             },
         },
         {
-            "icon": "🏢", "accent": BRAND_BLUE,
+            "accent": BRAND_BLUE,
             "title": {"ar": "الفروع", "en": "Branches"},
             "body": {
                 "ar": "أضيفي فروع جديدة، وحدّثي حالتها (نشط / غير نشط / موقوف) من هنا.",
@@ -75,7 +75,7 @@ with tab_guide:
             },
         },
         {
-            "icon": "📋", "accent": BRAND_PURPLE,
+            "accent": BRAND_PURPLE,
             "title": {"ar": "قوائم الفحص", "en": "Checklist"},
             "body": {
                 "ar": "أضيفي نُسخ قوائم فحص، أقسام، وأسئلة تدقيق جديدة. كل سؤال له وزن يُستخدم "
@@ -85,7 +85,7 @@ with tab_guide:
             },
         },
         {
-            "icon": "🔍", "accent": BRAND_LIME,
+            "accent": BRAND_LIME,
             "title": {"ar": "التدقيقات", "en": "Audits"},
             "body": {
                 "ar": "1. **تدقيق جديد**: اختاري الفرع وتاريخ الزيارة لجدولة تدقيق.\n"
@@ -105,7 +105,7 @@ with tab_guide:
             },
         },
         {
-            "icon": "🛠️", "accent": BRAND_BLUE,
+            "accent": BRAND_BLUE,
             "title": {"ar": "الإجراءات التصحيحية", "en": "Corrective Actions"},
             "body": {
                 "ar": "تابعي الإجراءات المفتوحة، حدّثي حالتها، وأضيفي ملاحظة عند الحل.",
@@ -113,7 +113,7 @@ with tab_guide:
             },
         },
         {
-            "icon": "👥", "accent": BRAND_PURPLE,
+            "accent": BRAND_PURPLE,
             "title": {"ar": "المستخدمون", "en": "Users"},
             "body": {
                 "ar": "أضيفي مستخدمين جدد وحدّدي أدوارهم (يظهر فقط للمالك والمدير).",
@@ -122,7 +122,7 @@ with tab_guide:
             },
         },
         {
-            "icon": "📈", "accent": BRAND_LIME,
+            "accent": BRAND_LIME,
             "title": {"ar": "التقارير", "en": "Reports"},
             "body": {
                 "ar": "حمّلي تقرير PDF لتدقيق معيّن، أو صدّري كل التدقيقات كملف Excel.",
@@ -131,7 +131,7 @@ with tab_guide:
             },
         },
         {
-            "icon": "📜", "accent": BRAND_BLUE,
+            "accent": BRAND_BLUE,
             "title": {"ar": "سجل النشاط", "en": "Audit Log"},
             "body": {
                 "ar": "سجل كامل لكل العمليات الحساسة بالنظام (من فعل ماذا ومتى).",
@@ -140,7 +140,7 @@ with tab_guide:
             },
         },
         {
-            "icon": "🤖", "accent": BRAND_PURPLE,
+            "accent": BRAND_PURPLE,
             "title": {"ar": "المساعد الذكي", "en": "AI Assistant"},
             "body": {
                 "ar": "اسألي عن بيانات النظام أو احصلي على ملخص وتوصيات ذكية لأي تدقيق مُرسل.",
@@ -149,7 +149,7 @@ with tab_guide:
             },
         },
         {
-            "icon": "💾", "accent": BRAND_LIME,
+            "accent": BRAND_LIME,
             "title": {"ar": "النسخ الاحتياطي", "en": "Backup"},
             "body": {
                 "ar": "**مهم جدًا**: نزّلي نسخة احتياطية بشكل دوري (أسبوعيًا مثلاً) من صفحة "
@@ -160,7 +160,7 @@ with tab_guide:
             },
         },
         {
-            "icon": "🌐", "accent": BRAND_BLUE,
+            "accent": BRAND_BLUE,
             "title": {"ar": "تبديل اللغة", "en": "Language Switching"},
             "body": {
                 "ar": "قائمة تبديل اللغة أعلى الصفحة تبدّل لغة الواجهة بالكامل فورًا، بما في "
@@ -173,18 +173,16 @@ with tab_guide:
     ]
 
     st.caption(
-        "💡 " + (
-            "اضغطي على أي بطاقة لعرض تفاصيلها — الدليل يتحدّث تلقائيًا مع كل تحديث جديد بالنظام."
-            if lang == "ar" else
-            "Tap any card to expand it — this guide is kept in sync automatically with every new system update."
-        )
+        "اضغطي على أي بطاقة لعرض تفاصيلها — الدليل يتحدّث تلقائيًا مع كل تحديث جديد بالنظام."
+        if lang == "ar" else
+        "Tap any card to expand it — this guide is kept in sync automatically with every new system update."
     )
     st.write("")
 
     for sec in GUIDE_SECTIONS:
         accent = sec["accent"]
         title = sec["title"][lang]
-        with st.expander(f"{sec['icon']}  {title}"):
+        with st.expander(title):
             st.markdown(
                 f'<div style="height:3px; background:{accent}; border-radius:2px; '
                 f'margin-bottom:12px; width:60px;"></div>',
@@ -206,11 +204,9 @@ with tab_guide:
 
     st.divider()
     st.caption(
-        "🔄 " + (
-            "آخر تحديث لهذا الدليل: يُحدَّث هذا الدليل مع كل تحديث جديد بالنظام."
-            if lang == "ar" else
-            "Last updated with the system: this guide is refreshed alongside every system update."
-        )
+        "آخر تحديث لهذا الدليل: يُحدَّث هذا الدليل مع كل تحديث جديد بالنظام."
+        if lang == "ar" else
+        "Last updated with the system: this guide is refreshed alongside every system update."
     )
 
 # ==================================================================
@@ -218,25 +214,25 @@ with tab_guide:
 # ==================================================================
 with tab_tour:
     TOUR_STEPS = [
-        {"icon": "👋", "ar": ("مرحبًا بك في نظام NXN", "هذه جولة سريعة تعرّفك على أهم أجزاء النظام خطوة بخطوة."),
+        {"ar": ("مرحبًا بك في نظام NXN", "هذه جولة سريعة تعرّفك على أهم أجزاء النظام خطوة بخطوة."),
          "en": ("Welcome to the NXN System", "A quick tour introducing you to the main parts of the system, step by step.")},
-        {"icon": "📊", "ar": ("لوحة المعلومات", "أول ما تدخلين، شوفي لوحة حالة الفروع الملوّنة لمعرفة أداء كل فرع بلمحة."),
+        {"ar": ("لوحة المعلومات", "أول ما تدخلين، شوفي لوحة حالة الفروع الملوّنة لمعرفة أداء كل فرع بلمحة."),
          "en": ("Dashboard", "As soon as you log in, check the colored Branch Status Board for an instant view of each branch's performance.")},
-        {"icon": "🏢", "ar": ("الفروع", "من هنا تضيفين فروعًا جديدة وتتابعين حالتها (نشط / موقوف)."),
+        {"ar": ("الفروع", "من هنا تضيفين فروعًا جديدة وتتابعين حالتها (نشط / موقوف)."),
          "en": ("Branches", "Add new branches and track their status (active / suspended) from here.")},
-        {"icon": "📋", "ar": ("قوائم الفحص", "جهّزي أسئلة التدقيق وأقسامها وأوزانها هنا قبل البدء بأي تدقيق."),
+        {"ar": ("قوائم الفحص", "جهّزي أسئلة التدقيق وأقسامها وأوزانها هنا قبل البدء بأي تدقيق."),
          "en": ("Checklist", "Prepare your audit questions, sections, and weights here before starting any audit.")},
-        {"icon": "🔍", "ar": ("التدقيقات", "أنشئي تدقيقًا جديدًا لفرع معيّن، نفّذيه بالإجابة على الأسئلة، ثم أرسليه — النتيجة تُحسب تلقائيًا!"),
+        {"ar": ("التدقيقات", "أنشئي تدقيقًا جديدًا لفرع معيّن، نفّذيه بالإجابة على الأسئلة، ثم أرسليه — النتيجة تُحسب تلقائيًا!"),
          "en": ("Audits", "Create a new audit for a branch, conduct it by answering the questions, then submit — the score is calculated automatically!")},
-        {"icon": "🛠️", "ar": ("الإجراءات التصحيحية", "أي إجابة غير متوافقة تنشئ إجراءً تصحيحيًا تلقائيًا — تابعيه هنا لين يُحل."),
+        {"ar": ("الإجراءات التصحيحية", "أي إجابة غير متوافقة تنشئ إجراءً تصحيحيًا تلقائيًا — تابعيه هنا لين يُحل."),
          "en": ("Corrective Actions", "Any non-compliant answer automatically creates a corrective action — track it here until resolved.")},
-        {"icon": "📈", "ar": ("التقارير", "حمّلي تقرير PDF لأي تدقيق، أو صدّري كل البيانات كملف Excel بضغطة واحدة."),
+        {"ar": ("التقارير", "حمّلي تقرير PDF لأي تدقيق، أو صدّري كل البيانات كملف Excel بضغطة واحدة."),
          "en": ("Reports", "Download a PDF report for any audit, or export all data to Excel with one click.")},
-        {"icon": "🤖", "ar": ("المساعد الذكي", "اسأليه عن بيانات النظام، أو خليه يلخّص لك أي تدقيق ويقترح توصيات."),
+        {"ar": ("المساعد الذكي", "اسأليه عن بيانات النظام، أو خليه يلخّص لك أي تدقيق ويقترح توصيات."),
          "en": ("AI Assistant", "Ask it about system data, or let it summarize any audit and suggest recommendations.")},
-        {"icon": "💾", "ar": ("النسخ الاحتياطي", "أهم عادة! نزّلي نسخة احتياطية بشكل دوري من هذي الصفحة لحماية بياناتك."),
+        {"ar": ("النسخ الاحتياطي", "أهم عادة! نزّلي نسخة احتياطية بشكل دوري من هذي الصفحة لحماية بياناتك."),
          "en": ("Backup", "The most important habit! Download a backup regularly from this page to protect your data.")},
-        {"icon": "🎉", "ar": ("جاهزة تبدين!", "كذا خلصت الجولة. استخدمي الدليل المكتوب بالتبويب المجاور لو احتجتي تفاصيل أكثر بأي وقت."),
+        {"ar": ("جاهزة تبدين!", "كذا خلصت الجولة. استخدمي الدليل المكتوب بالتبويب المجاور لو احتجتي تفاصيل أكثر بأي وقت."),
          "en": ("You're ready to start!", "That's the end of the tour. Use the written guide in the next tab anytime you need more detail.")},
     ]
 
@@ -261,7 +257,6 @@ with tab_tour:
             border: 2px solid {accent}; border-radius: 20px;
             padding: 48px 32px; text-align: center; margin: 16px 0 24px 0;
         ">
-            <div style="font-size: 64px; margin-bottom: 12px;">{current['icon']}</div>
             <div style="font-size: 26px; font-weight: 800; color: {accent}; margin-bottom: 12px;">{title}</div>
             <div style="font-size: 16px; color: #444; max-width: 560px; margin: 0 auto; line-height: 1.7;">{desc}</div>
         </div>
