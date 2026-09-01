@@ -24,7 +24,7 @@ if not is_ai_configured():
             t("ai_not_configured") + "\n\n"
             + t("ai_setup_step1") + "\n"
             + t("ai_setup_step2") + "\n"
-            "```\nANTHROPIC_API_KEY = \"sk-ant-...\"\n```\n"
+            "```\nAI_API_KEY = \"...\"\n```\n"
             + t("ai_setup_step3") + "\n\n"
             + t("ai_setup_cost_note")
         )
