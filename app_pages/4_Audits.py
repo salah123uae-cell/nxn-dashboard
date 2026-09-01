@@ -3,9 +3,9 @@ from branding import render_logo, apply_theme
 import pandas as pd
 from datetime import datetime
 
-from auth import require_login, current_user, log_action, render_logout_sidebar
+from auth import require_login, current_user, log_action, render_logout_sidebar, can_manage_branch
 from database import get_session
-from models import Audit, AuditAnswer, AuditQuestion, Branch, CorrectiveAction
+from models import Audit, AuditAnswer, AuditQuestion, Branch, CorrectiveAction, EvidenceFile
 from utils import generate_reference, calculate_audit_score, score_badge, export_audits_to_excel
 from data_cache import get_branches_by_id_cached, get_active_branches_cached, get_questions_for_version_cached, get_sections_cached
 from i18n import t, get_lang
@@ -27,6 +27,9 @@ with tab_list:
     branches_by_id = get_branches_by_id_cached()
     with get_session() as s:
         audits = s.query(Audit).order_by(Audit.created_at.desc()).all()
+        # المستخدم بدور "فرع" يشوف فقط تدقيقات فرعه (أو فروعه) المُدارة
+        if user["role"] == "branch":
+            audits = [a for a in audits if can_manage_branch(user, a.branch_id)]
         rows = []
         for a in audits:
             rows.append({
@@ -76,6 +79,12 @@ with tab_new:
                         s.add(audit)
                         s.flush()
                         log_action(user["email"], "create", "audit", audit.id, after={"reference": audit.reference})
+                        if auditor_email and auditor_email != user["email"]:
+                            from notifications import create_notification
+                            create_notification(
+                                auditor_email, "audit_assigned", "تدقيق جديد مُسند لك",
+                                f"تم إسناد التدقيق {audit.reference} لك، تفقّدي صفحة التدقيقات لتنفيذه.",
+                            )
                         st.success(t("audit_created", ref=audit.reference))
                         st.rerun()
 
@@ -83,6 +92,9 @@ with tab_new:
 with tab_conduct:
     with get_session() as s:
         audits = s.query(Audit).filter(Audit.status.in_(["scheduled", "draft", "submitted", "reviewed"])).all()
+        # المستخدم بدور "فرع" يشوف فقط تدقيقات فرعه (أو فروعه) المُدارة هنا أيضًا
+        if user["role"] == "branch":
+            audits = [a for a in audits if can_manage_branch(user, a.branch_id)]
         audit_options = {f"{a.reference} ({a.status})": a.id for a in audits}
 
     if not audit_options:
@@ -106,7 +118,45 @@ with tab_conduct:
 
         st.write(t("audit_summary_line", branch=branch_name, status=audit_data["status"], score=score_badge(audit_data["score"])))
 
-        editable = audit_data["status"] in ("scheduled", "draft")
+        editable = audit_data["status"] in ("scheduled", "draft") and user["role"] != "viewer"
+
+        # ---------- الأدلة المرفقة (صور/مستندات) ----------
+        with st.expander(t("evidence_section_title"), expanded=False):
+            with get_session() as s:
+                evidence_rows = [
+                    {"id": e.id, "file_name": e.file_name, "size_bytes": e.size_bytes,
+                     "content_type": e.content_type, "uploaded_by": e.uploaded_by}
+                    for e in s.query(EvidenceFile).filter(EvidenceFile.audit_id == audit_id)
+                    .order_by(EvidenceFile.created_at.desc()).all()
+                ]
+
+            if evidence_rows:
+                for ev in evidence_rows:
+                    ec1, ec2 = st.columns([4, 1])
+                    ec1.write(f"{ev['file_name']}  ({round(ev['size_bytes']/1024, 1)} KB) — {ev['uploaded_by']}")
+                    with get_session() as s:
+                        file_bytes = s.query(EvidenceFile).get(ev["id"]).file_data
+                    ec2.download_button(t("download_btn"), data=file_bytes, file_name=ev["file_name"],
+                                         mime=ev["content_type"], key=f"evdl_{ev['id']}")
+            else:
+                st.caption(t("no_evidence_yet"))
+
+            if editable:
+                uploaded_file = st.file_uploader(t("upload_evidence_label"), key=f"evidence_upload_{audit_id}",
+                                                  type=["png", "jpg", "jpeg", "pdf", "docx", "xlsx"])
+                if uploaded_file is not None:
+                    if st.button(t("save_evidence_btn"), key=f"save_evidence_{audit_id}"):
+                        file_bytes = uploaded_file.getvalue()
+                        with get_session() as s:
+                            s.add(EvidenceFile(
+                                audit_id=audit_id, file_name=uploaded_file.name,
+                                content_type=uploaded_file.type or "application/octet-stream",
+                                size_bytes=len(file_bytes), file_data=file_bytes,
+                                uploaded_by=user["email"],
+                            ))
+                        log_action(user["email"], "upload_evidence", "audit", audit_id, after={"file_name": uploaded_file.name})
+                        st.success(t("evidence_saved_msg"))
+                        st.rerun()
 
         # ملاحظة أداء: كل حقول الإجابة والملاحظات داخل نموذج (st.form) واحد، فلا تُعاد
         # قراءة قاعدة البيانات وإعادة رسم كل الأسئلة مع كل حرف يُكتب — فقط عند الحفظ/الإرسال.
@@ -210,6 +260,13 @@ with tab_conduct:
                                 priority="high", status="open",
                             ))
                     log_action(user["email"], "submit", "audit", audit_id, after={"score": score})
+                if any(a.answer == "non_compliant" for a in all_answers):
+                    from notifications import create_notification
+                    create_notification(
+                        audit.auditor_email, "corrective_action_created",
+                        "إجراءات تصحيحية جديدة",
+                        f"تم إنشاء إجراءات تصحيحية جديدة لك من التدقيق {audit.reference}.",
+                    )
                 st.success(t("audit_submitted_msg", score=score))
                 st.rerun()
 
