@@ -212,6 +212,7 @@ def apply_theme(direction: str = "rtl"):
         /* ---------- الشريط الجانبي: كحلي داكن متدرّج، مطابق لهوية NxN الرسمية ---------- */
         [data-testid="stSidebar"] {{
             background: linear-gradient(180deg, #1E1B4B 0%, #14123A 100%);
+            direction: {direction};
         }}
         /* إعادة ترتيب بصري: الشعار المخصّص يظهر أولًا (فوق)، ثم قائمة التنقّل الرسمية تحته مباشرة */
         [data-testid="stSidebarContent"] {{
@@ -238,6 +239,10 @@ def apply_theme(direction: str = "rtl"):
         [data-testid="stSidebarNav"] a {{
             color: #DADCFF !important;
             border-radius: 10px !important;
+            text-align: {"right" if direction == "rtl" else "left"} !important;
+        }}
+        [data-testid="stSidebarNav"] ul, [data-testid="stSidebarNav"] li {{
+            direction: {direction};
         }}
         [data-testid="stSidebar"] a:hover,
         [data-testid="stSidebarNav"] a:hover {{
@@ -261,6 +266,10 @@ def apply_theme(direction: str = "rtl"):
             background: {BRAND_PURPLE};
             color: white;
         }}
+
+        /* ---------- تبديل اللغة: قائمة منسدلة صغيرة أنيقة، تُنسّق عبر
+           الأسلوب العام للقوائم المنسدلة أعلاه (بدون تثبيت CSS معقّد قد
+           يتعارض مع عناصر أخرى أعلى الصفحة). ---------- */
         </style>
         """,
         unsafe_allow_html=True,
