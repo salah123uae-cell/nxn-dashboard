@@ -3,7 +3,7 @@ from branding import render_logo, apply_theme
 import pandas as pd
 from datetime import datetime
 
-from auth import require_login, current_user, log_action, render_logout_sidebar
+from auth import require_login, current_user, log_action, render_logout_sidebar, can_manage_branch
 from database import get_session
 from models import CorrectiveAction, Audit
 from i18n import t, get_lang
@@ -22,8 +22,15 @@ with get_session() as s:
     actions = s.query(CorrectiveAction).order_by(CorrectiveAction.created_at.desc()).all()
     audits = {a.id: a for a in s.query(Audit).all()}
 
-    if user["role"] in ("auditor", "branch"):
+    if user["role"] == "auditor":
+        # المدقق يشوف فقط الإجراءات المسندة له شخصيًا
         actions = [a for a in actions if a.owner_email == user["email"]]
+    elif user["role"] == "branch":
+        # الفرع يشوف كل إجراءات فرعه (أو فروعه) المُدارة، مو بس المسندة له شخصيًا
+        actions = [
+            a for a in actions
+            if a.audit_id in audits and can_manage_branch(user, audits[a.audit_id].branch_id)
+        ]
 
     rows = [{
         "id": a.id, t("reference_col"): audits[a.audit_id].reference if a.audit_id in audits else "—",
@@ -47,8 +54,14 @@ if not df.empty:
         action_status = action.status
         action_response_note = action.response_note or ""
         action_owner_email = action.owner_email
+        action_audit = s.query(Audit).get(action.audit_id) if action.audit_id else None
+        action_branch_id = action_audit.branch_id if action_audit else None
 
-    can_update = user["role"] in ("owner", "manager") or user["email"] == action_owner_email
+    can_update = (
+        user["role"] in ("owner", "manager")
+        or user["email"] == action_owner_email
+        or (user["role"] == "branch" and action_branch_id is not None and can_manage_branch(user, action_branch_id))
+    )
 
     if can_update:
         # ملاحظة أداء: الحقول داخل نموذج (st.form) فلا تُعاد قراءة قاعدة البيانات
