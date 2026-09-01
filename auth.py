@@ -244,7 +244,7 @@ def render_logout_sidebar():
     with st.sidebar:
         st.divider()
         role_label = ROLE_LABELS_AR.get(user["role"], user["role"])
-        st.caption(f"👤 {user['name']} — {role_label}")
+        st.caption(f"{user['name']} — {role_label}")
         if st.button(t("logout"), key="global_logout_btn", use_container_width=True):
             logout()
             st.rerun()
