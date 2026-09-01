@@ -7,6 +7,7 @@ import string
 from datetime import datetime
 
 import pandas as pd
+import streamlit as st
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from reportlab.lib.pagesizes import A4
@@ -49,6 +50,46 @@ def score_badge(score: float | None) -> str:
     if score is None:
         return "غير محسوبة"
     return f"{score}%"
+
+
+def paginate_dataframe(df: pd.DataFrame, key_prefix: str, page_size: int = 15, search_label: str = "بحث"):
+    """يعرض صندوق بحث نصي (يبحث بكل الأعمدة النصية) + أزرار تنقّل بين الصفحات،
+    ويرجّع الجزء المطلوب عرضه من الجدول فقط. يُستخدم لتفادي بطء الجداول الكبيرة
+    وتسهيل الوصول لصف معيّن بدل التمرير اليدوي بجدول طويل."""
+    if df.empty:
+        return df
+
+    query = st.text_input(search_label, key=f"{key_prefix}_search", placeholder=search_label)
+    filtered = df
+    if query:
+        mask = df.apply(lambda row: row.astype(str).str.contains(query, case=False, na=False).any(), axis=1)
+        filtered = df[mask]
+
+    total = len(filtered)
+    total_pages = max(1, (total - 1) // page_size + 1)
+    page_key = f"{key_prefix}_page"
+    if page_key not in st.session_state:
+        st.session_state[page_key] = 1
+    st.session_state[page_key] = min(st.session_state[page_key], total_pages)
+
+    if total_pages > 1:
+        pc1, pc2, pc3 = st.columns([1, 2, 1])
+        with pc1:
+            if st.button("السابق", key=f"{key_prefix}_prev", disabled=st.session_state[page_key] <= 1):
+                st.session_state[page_key] -= 1
+                st.rerun()
+        with pc2:
+            st.markdown(
+                f"<div style='text-align:center;'>{st.session_state[page_key]} / {total_pages}"
+                f" ({total} نتيجة)</div>", unsafe_allow_html=True,
+            )
+        with pc3:
+            if st.button("التالي", key=f"{key_prefix}_next", disabled=st.session_state[page_key] >= total_pages):
+                st.session_state[page_key] += 1
+                st.rerun()
+
+    start = (st.session_state[page_key] - 1) * page_size
+    return filtered.iloc[start:start + page_size]
 
 
 def export_audits_to_excel(df: pd.DataFrame) -> bytes:
