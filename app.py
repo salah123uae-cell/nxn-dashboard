@@ -7,20 +7,32 @@
 الرسمية، لتفادي أي تعارض بين نظام التنقّل اليدوي هنا واكتشاف الصفحات التلقائي.
 
 قبل تسجيل الدخول: تظهر فقط صفحة "الرئيسية" (بدون بقية عناصر القائمة، لأنها
-غير مفيدة لمستخدم غير مسجّل دخول أصلًا وتضغط الشريط الجانبي بلا داعٍ).
-بعد تسجيل الدخول: تظهر القائمة الكاملة.
+غير مفيدة لمستخدم غير مسجّل دخول أصلًا وتضغط الشريط الجانبي بلا داعٍ)، والشريط
+الجانبي يبدأ مطويًا لتفادي تغطية شاشة الدخول على الجوال.
+بعد تسجيل الدخول: تظهر القائمة الكاملة، والشريط الجانبي يبقى مفتوحًا بشكل
+دائم (نخفي سهم الطي حتى لا يُغلق بالخطأ).
 """
 import streamlit as st
 from i18n import t, get_lang, language_switcher
 from branding import render_sidebar_logo, render_dev_credit
 from auth import current_user
 
+_is_logged_in = current_user() is not None
+
 st.set_page_config(
     page_title="NXN Quality System | نظام NXN لإدارة الجودة",
     page_icon=None,
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded" if _is_logged_in else "collapsed",
 )
+
+# بعد تسجيل الدخول: نخفي سهم طيّ الشريط الجانبي بالكامل، بحيث تبقى القائمة
+# مفتوحة بشكل دائم ولا يقدر المستخدم يقفلها بالخطأ.
+if _is_logged_in:
+    st.markdown(
+        '<style>[data-testid="collapsedControl"] {display: none !important;}</style>',
+        unsafe_allow_html=True,
+    )
 
 # نقرأ اللغة الحالية فقط للتأكد من إعادة بناء القائمة عند كل تغيير (get_lang يقرأ من session_state)
 _ = get_lang()
@@ -37,7 +49,7 @@ language_switcher()
 
 home_page = st.Page("home.py", title=t("nav_home"), url_path="", default=True)
 
-if current_user():
+if _is_logged_in:
     pages = [
         home_page,
         st.Page("app_pages/1_Dashboard.py", title=t("nav_dashboard"), url_path="Dashboard"),
