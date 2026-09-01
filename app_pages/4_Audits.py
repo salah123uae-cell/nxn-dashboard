@@ -116,7 +116,7 @@ with tab_conduct:
             for q in questions:
                 sec = sections.get(q["section_id"])
                 if sec and sec["id"] != current_section:
-                    st.subheader(f"📂 {sec['name_ar']}")
+                    st.subheader(sec['name_ar'])
                     current_section = sec["id"]
 
                 existing = existing_answers.get(q["id"])
