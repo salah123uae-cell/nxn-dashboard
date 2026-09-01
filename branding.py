@@ -79,12 +79,22 @@ def render_sidebar_logo():
 
 
 def apply_theme(direction: str = "rtl"):
-    """يطبّق هوية بصرية شاملة ومبتكرة على كل صفحات النظام."""
+    """يطبّق هوية بصرية شاملة ومبتكرة على كل صفحات النظام: تدرجات لونية، بطاقات
+    عصرية بظلال ناعمة، أزرار متحركة، تبويبات على شكل كبسولات، حقول إدخال أنعم،
+    وجداول أنيقة — كل هذا مبني على ألوان هوية NxN الرسمية.
+    كما يقلب موضع الشريط الجانبي بالكامل حسب اللغة: يمين الشاشة عند العربية
+    (RTL)، ويسار الشاشة عند الإنجليزية (LTR) — نفس سلوك المواقع ثنائية اللغة
+    الاحترافية، وليس فقط اتجاه النص داخل المحتوى."""
+    sidebar_flex = "row-reverse" if direction == "rtl" else "row"
     st.markdown(
         f"""
         <style>
         html, body, [class*="css"] {{
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, "Noto Sans Arabic", sans-serif;
+        }}
+        /* ---------- قلب موضع الشريط الجانبي بالكامل حسب اتجاه اللغة ---------- */
+        [data-testid="stAppViewContainer"] {{
+            flex-direction: {sidebar_flex};
         }}
         .block-container {{
             direction: {direction};
@@ -92,12 +102,15 @@ def apply_theme(direction: str = "rtl"):
             max-width: 1200px;
         }}
 
+        /* ---------- خلفية المحتوى: تدرّج خفيف جدًا بدل الأبيض المسطّح ---------- */
         [data-testid="stAppViewContainer"] > .main {{
             background: linear-gradient(180deg, #FAFBFF 0%, #F4F5FC 60%, #F0F1FA 100%);
         }}
 
+        /* ---------- العناوين ---------- */
         h1, h2, h3 {{ color: {BRAND_BLUE}; font-weight: 800; }}
 
+        /* ---------- بطاقات المقاييس (Metrics) ---------- */
         [data-testid="stMetric"] {{
             background: #FFFFFF;
             border: none;
@@ -113,6 +126,7 @@ def apply_theme(direction: str = "rtl"):
         }}
         [data-testid="stMetricValue"] {{ color: {BRAND_BLUE}; font-weight: 800; }}
 
+        /* ---------- الأزرار: تدرّج لوني مع ظل وحركة رفع عند التحويم ---------- */
         .stButton>button, .stDownloadButton>button, .stFormSubmitButton>button {{
             background: linear-gradient(135deg, {BRAND_LIME} 0%, #2FA81D 100%);
             color: white;
@@ -133,6 +147,7 @@ def apply_theme(direction: str = "rtl"):
             transform: translateY(0);
         }}
 
+        /* ---------- التبويبات (st.tabs): شكل كبسولة عصري بدل الخط السفلي التقليدي ---------- */
         [data-baseweb="tab-list"] {{
             gap: 6px;
             background: #EEF0FB;
@@ -152,6 +167,7 @@ def apply_theme(direction: str = "rtl"):
             color: {BRAND_PURPLE} !important;
         }}
 
+        /* ---------- الحقول النصية وحقول الأرقام والتاريخ ---------- */
         .stTextInput input, .stTextArea textarea, .stNumberInput input, .stDateInput input {{
             border-radius: 12px !important;
             border: 1.5px solid #E3E4F6 !important;
@@ -162,21 +178,25 @@ def apply_theme(direction: str = "rtl"):
             box-shadow: 0 0 0 3px rgba(150,60,189,0.12) !important;
         }}
 
+        /* ---------- القوائم المنسدلة ---------- */
         [data-baseweb="select"] > div {{
             border-radius: 12px !important;
             border: 1.5px solid #E3E4F6 !important;
         }}
 
+        /* ---------- الحاويات ذات الحدود (st.container(border=True)) ---------- */
         [data-testid="stVerticalBlockBorderWrapper"] {{
             border-radius: 16px !important;
             transition: box-shadow 0.2s ease;
         }}
 
+        /* ---------- التنبيهات (info/success/warning/error) ---------- */
         [data-testid="stAlert"] {{
             border-radius: 14px;
             border: none;
         }}
 
+        /* ---------- الفواصل والجداول ---------- */
         hr {{ border-color: #E3E4F6; }}
         div[data-testid="stDataFrame"] {{
             border-radius: 14px;
@@ -189,9 +209,11 @@ def apply_theme(direction: str = "rtl"):
             font-weight: 700;
         }}
 
+        /* ---------- الشريط الجانبي: كحلي داكن متدرّج، مطابق لهوية NxN الرسمية ---------- */
         [data-testid="stSidebar"] {{
             background: linear-gradient(180deg, #1E1B4B 0%, #14123A 100%);
         }}
+        /* إعادة ترتيب بصري: الشعار المخصّص يظهر أولًا (فوق)، ثم قائمة التنقّل الرسمية تحته مباشرة */
         [data-testid="stSidebarContent"] {{
             display: flex;
             flex-direction: column;
@@ -211,6 +233,7 @@ def apply_theme(direction: str = "rtl"):
         [data-testid="stSidebar"] hr {{
             border-color: rgba(255,255,255,0.12) !important;
         }}
+        /* روابط التنقّل بالقائمة الجانبية */
         [data-testid="stSidebar"] a,
         [data-testid="stSidebarNav"] a {{
             color: #DADCFF !important;
@@ -227,6 +250,7 @@ def apply_theme(direction: str = "rtl"):
             color: #14123A !important;
             font-weight: 700 !important;
         }}
+        /* أزرار تسجيل الخروج بالشريط الجانبي تبقى بألوان الهوية الزاهية */
         [data-testid="stSidebar"] .stButton>button {{
             background: {BRAND_LIME};
             color: #14123A;
