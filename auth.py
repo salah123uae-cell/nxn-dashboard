@@ -10,6 +10,9 @@ from datetime import datetime
 from database import get_session
 from models import User, Credential, AuditLog, SignupRequest, PasswordResetRequest
 
+LOCKOUT_THRESHOLD = 5          # عدد المحاولات الفاشلة المتتالية قبل القفل المؤقت
+LOCKOUT_DURATION_MINUTES = 15  # مدة القفل بالدقائق
+
 ROLES = ["owner", "manager", "auditor", "branch", "viewer"]
 
 ROLE_LABELS_AR = {
@@ -48,6 +51,7 @@ def log_action(actor_email: str, action: str, entity_type: str, entity_id=None, 
 
 def login(email: str, password: str) -> tuple[bool, str]:
     """يحاول تسجيل الدخول. يرجع (نجاح, رسالة)."""
+    from datetime import timedelta
     from i18n import t  # استيراد محلي لتفادي أي حلقة استيراد دائرية
 
     with get_session() as s:
@@ -59,12 +63,25 @@ def login(email: str, password: str) -> tuple[bool, str]:
             return False, f"الحساب موقوف حتى {user.suspended_until}"
 
         cred = s.query(Credential).filter(Credential.user_id == user.id).first()
+
+        # ---------- التحقق من القفل المؤقت بسبب محاولات فاشلة متكررة ----------
+        if cred and cred.locked_until and cred.locked_until > datetime.utcnow():
+            remaining = cred.locked_until - datetime.utcnow()
+            minutes_left = max(1, int(remaining.total_seconds() // 60) + 1)
+            return False, f"الحساب مقفل مؤقتًا بسبب محاولات دخول فاشلة متكررة. حاول بعد {minutes_left} دقيقة."
+
         if not cred or not verify_password(password, cred.password_hash):
             if cred:
                 cred.failed_attempts = (cred.failed_attempts or 0) + 1
+                if cred.failed_attempts >= LOCKOUT_THRESHOLD:
+                    cred.locked_until = datetime.utcnow() + timedelta(minutes=LOCKOUT_DURATION_MINUTES)
+                    cred.failed_attempts = 0
+                    log_action(email, "lockout", "user", entity_id=email)
+                    return False, f"تم قفل الحساب مؤقتًا لمدة {LOCKOUT_DURATION_MINUTES} دقيقة بسبب محاولات دخول فاشلة متكررة."
             return False, "كلمة المرور غير صحيحة"
 
         cred.failed_attempts = 0
+        cred.locked_until = None
         user.last_login_at = datetime.utcnow()
 
         st.session_state["user"] = {
@@ -160,6 +177,11 @@ def approve_signup_request(request_id: int, reviewer_email: str, role: str = "au
         req.reviewed_at = datetime.utcnow()
         req_email = req.email
     log_action(reviewer_email, "approve", "signup_request", request_id, after={"email": req_email})
+    from notifications import create_notification
+    create_notification(
+        req_email, "signup_approved", "تم قبول حسابك",
+        "تمت الموافقة على طلب إنشاء حسابك، تقدر تسجّلين الدخول الآن.",
+    )
     return True, "signup_approved"
 
 
@@ -218,6 +240,11 @@ def approve_password_reset(request_id: int, reviewer_email: str) -> tuple[bool, 
         req.reviewed_at = datetime.utcnow()
         req_email = req.email
     log_action(reviewer_email, "approve", "password_reset_request", request_id, after={"email": req_email})
+    from notifications import create_notification
+    create_notification(
+        req_email, "reset_approved", "تم تحديث كلمة المرور",
+        "تمت الموافقة على طلب استعادة كلمة المرور وتحديثها.",
+    )
     return True, "reset_approved"
 
 
