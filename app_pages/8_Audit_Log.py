@@ -5,6 +5,7 @@ import pandas as pd
 from auth import require_role, render_logout_sidebar
 from database import get_session
 from models import AuditLog
+from utils import paginate_dataframe
 from i18n import t, get_lang
 
 lang = get_lang()
@@ -35,6 +36,6 @@ if not df.empty:
     if entity_filter:
         df = df[df[t("entity_type_col")].str.contains(entity_filter, case=False, na=False)]
 
-st.dataframe(df, use_container_width=True, hide_index=True)
+st.dataframe(paginate_dataframe(df, key_prefix="audit_log"), use_container_width=True, hide_index=True)
 st.caption(t("log_caption", n=len(rows)))
 
