@@ -16,138 +16,202 @@ st.title(t("help_title"))
 tab_guide, tab_tour = st.tabs([t("help_tab_guide"), t("help_tab_tour")])
 
 # ==================================================================
-# التبويب الأول: الدليل المكتوب
+# التبويب الأول: الدليل البصري التفاعلي (بطاقات قابلة للطي بدل نص طويل)
+# ملاحظة للمطوّر: هذا الدليل مبني من قائمة بيانات GUIDE_SECTIONS أدناه —
+# أي صفحة أو ميزة جديدة تُضاف للنظام مستقبلًا يجب إضافة عنصر لها هنا فورًا
+# حتى يبقى الدليل مطابقًا للنظام الفعلي بشكل دائم.
 # ==================================================================
 with tab_guide:
-    GUIDE_AR = """
-### 🗂️ نظرة عامة
-نظام NXN لإدارة جودة الفروع يساعدك على تنظيم عمليات تدقيق الجودة بكل الفروع، متابعة
-النتائج، وإدارة الإجراءات التصحيحية من مكان واحد.
+    GUIDE_SECTIONS = [
+        {
+            "icon": "🗂️", "accent": BRAND_BLUE,
+            "title": {"ar": "نظرة عامة", "en": "Overview"},
+            "body": {
+                "ar": "نظام NXN لإدارة جودة الفروع يساعدك على تنظيم عمليات تدقيق الجودة بكل "
+                      "الفروع، متابعة النتائج، وإدارة الإجراءات التصحيحية من مكان واحد.",
+                "en": "The NXN Branch Quality Management System helps you organize quality "
+                      "audits across all branches, track results, and manage corrective "
+                      "actions from one place.",
+            },
+        },
+        {
+            "icon": "👤", "accent": BRAND_PURPLE,
+            "title": {"ar": "الأدوار والصلاحيات", "en": "Roles & Permissions"},
+            "table": [
+                {"ar": ("مالك النظام", "كل الصلاحيات، بما فيها إدارة المستخدمين والنسخ الاحتياطي"),
+                 "en": ("Owner", "Full access, including user management and backups")},
+                {"ar": ("مدير", "إدارة الفروع وقوائم الفحص، اعتماد التدقيقات، إدارة المستخدمين"),
+                 "en": ("Manager", "Manage branches, checklists, approve audits, manage users")},
+                {"ar": ("مدقق", "إنشاء وتنفيذ التدقيقات الخاصة به"),
+                 "en": ("Auditor", "Create and conduct their own audits")},
+                {"ar": ("فرع", "متابعة تدقيقات فرعه والإجراءات التصحيحية الخاصة به"),
+                 "en": ("Branch", "Track their branch's audits and corrective actions")},
+                {"ar": ("مشاهد", "عرض فقط بدون تعديل"),
+                 "en": ("Viewer", "Read-only access")},
+            ],
+        },
+        {
+            "icon": "📊", "accent": BRAND_LIME,
+            "title": {"ar": "لوحة المعلومات", "en": "Dashboard"},
+            "body": {
+                "ar": "**لوحة حالة الفروع**: بطاقات ملوّنة تعطيك نظرة سريعة على أداء كل فرع "
+                      "(🟢 أخضر = ممتاز 90%+، 🟡 برتقالي = جيد 75-89%، 🔴 أحمر = يحتاج متابعة).\n\n"
+                      "**الفلاتر**: صفّي البيانات حسب فرع معيّن أو فترة زمنية محددة.\n\n"
+                      "**الرسوم البيانية**: توزيع حالات التدقيق ومتوسط النتيجة لكل فرع.",
+                "en": "**Branch Status Board**: colored cards give you an instant view of each "
+                      "branch's performance (🟢 Green = excellent 90%+, 🟡 Orange = good "
+                      "75-89%, 🔴 Red = needs attention).\n\n"
+                      "**Filters**: filter data by specific branch or date range.\n\n"
+                      "**Charts**: audit status distribution and average score per branch.",
+            },
+        },
+        {
+            "icon": "🏢", "accent": BRAND_BLUE,
+            "title": {"ar": "الفروع", "en": "Branches"},
+            "body": {
+                "ar": "أضيفي فروع جديدة، وحدّثي حالتها (نشط / غير نشط / موقوف) من هنا.",
+                "en": "Add new branches and update their status (active / inactive / "
+                      "suspended) here.",
+            },
+        },
+        {
+            "icon": "📋", "accent": BRAND_PURPLE,
+            "title": {"ar": "قوائم الفحص", "en": "Checklist"},
+            "body": {
+                "ar": "أضيفي نُسخ قوائم فحص، أقسام، وأسئلة تدقيق جديدة. كل سؤال له وزن يُستخدم "
+                      "بحساب النتيجة.",
+                "en": "Add checklist versions, sections, and audit questions. Each question "
+                      "has a weight used in score calculation.",
+            },
+        },
+        {
+            "icon": "🔍", "accent": BRAND_LIME,
+            "title": {"ar": "التدقيقات", "en": "Audits"},
+            "body": {
+                "ar": "1. **تدقيق جديد**: اختاري الفرع وتاريخ الزيارة لجدولة تدقيق.\n"
+                      "2. **تنفيذ / مراجعة**: أجيبي على الأسئلة (متوافق / غير متوافق / لا "
+                      "ينطبق)، احفظي كمسودة أو أرسلي التدقيق النهائي. عند وجود إجابة \"غير "
+                      "متوافق\"، يُنشأ إجراء تصحيحي تلقائيًا.\n"
+                      "3. النتيجة النهائية = (مجموع أوزان الأسئلة المتوافقة) ÷ (مجموع أوزان "
+                      "الأسئلة القابلة للتطبيق) × 100.",
+                "en": "1. **New Audit**: choose the branch and visit date to schedule an "
+                      "audit.\n"
+                      "2. **Conduct / Review**: answer the questions (compliant / "
+                      "non-compliant / not applicable), save as draft or submit the final "
+                      "audit. A \"non-compliant\" answer automatically creates a corrective "
+                      "action.\n"
+                      "3. Final score = (sum of weights of compliant questions) ÷ (sum of "
+                      "weights of applicable questions) × 100.",
+            },
+        },
+        {
+            "icon": "🛠️", "accent": BRAND_BLUE,
+            "title": {"ar": "الإجراءات التصحيحية", "en": "Corrective Actions"},
+            "body": {
+                "ar": "تابعي الإجراءات المفتوحة، حدّثي حالتها، وأضيفي ملاحظة عند الحل.",
+                "en": "Track open actions, update their status, and add a resolution note.",
+            },
+        },
+        {
+            "icon": "👥", "accent": BRAND_PURPLE,
+            "title": {"ar": "المستخدمون", "en": "Users"},
+            "body": {
+                "ar": "أضيفي مستخدمين جدد وحدّدي أدوارهم (يظهر فقط للمالك والمدير).",
+                "en": "Add new users and assign their roles (visible to Owner and Manager "
+                      "only).",
+            },
+        },
+        {
+            "icon": "📈", "accent": BRAND_LIME,
+            "title": {"ar": "التقارير", "en": "Reports"},
+            "body": {
+                "ar": "حمّلي تقرير PDF لتدقيق معيّن، أو صدّري كل التدقيقات كملف Excel.",
+                "en": "Download a PDF report for a specific audit, or export all audits as "
+                      "an Excel file.",
+            },
+        },
+        {
+            "icon": "📜", "accent": BRAND_BLUE,
+            "title": {"ar": "سجل النشاط", "en": "Audit Log"},
+            "body": {
+                "ar": "سجل كامل لكل العمليات الحساسة بالنظام (من فعل ماذا ومتى).",
+                "en": "A complete log of every sensitive operation in the system (who did "
+                      "what, and when).",
+            },
+        },
+        {
+            "icon": "🤖", "accent": BRAND_PURPLE,
+            "title": {"ar": "المساعد الذكي", "en": "AI Assistant"},
+            "body": {
+                "ar": "اسألي عن بيانات النظام أو احصلي على ملخص وتوصيات ذكية لأي تدقيق مُرسل.",
+                "en": "Ask about system data or get a smart summary and recommendations for "
+                      "any submitted audit.",
+            },
+        },
+        {
+            "icon": "💾", "accent": BRAND_LIME,
+            "title": {"ar": "النسخ الاحتياطي", "en": "Backup"},
+            "body": {
+                "ar": "**مهم جدًا**: نزّلي نسخة احتياطية بشكل دوري (أسبوعيًا مثلاً) من صفحة "
+                      "\"النسخ الاحتياطي\" لحماية بياناتك من أي طارئ.",
+                "en": "**Very important**: download a backup regularly (weekly, for "
+                      "example) from the \"Backup\" page to protect your data from any "
+                      "unexpected issue.",
+            },
+        },
+        {
+            "icon": "🌐", "accent": BRAND_BLUE,
+            "title": {"ar": "تبديل اللغة", "en": "Language Switching"},
+            "body": {
+                "ar": "قائمة تبديل اللغة أعلى الصفحة تبدّل لغة الواجهة بالكامل فورًا، بما في "
+                      "ذلك موضع الشريط الجانبي (يمين للعربية، يسار للإنجليزية).",
+                "en": "The language dropdown at the top of the page switches the entire "
+                      "interface language instantly, including the sidebar's position "
+                      "(right for Arabic, left for English).",
+            },
+        },
+    ]
 
----
+    st.caption(
+        "💡 " + (
+            "اضغطي على أي بطاقة لعرض تفاصيلها — الدليل يتحدّث تلقائيًا مع كل تحديث جديد بالنظام."
+            if lang == "ar" else
+            "Tap any card to expand it — this guide is kept in sync automatically with every new system update."
+        )
+    )
+    st.write("")
 
-### 👤 الأدوار والصلاحيات
-| الدور | الصلاحيات |
-|---|---|
-| **مالك النظام** | كل الصلاحيات، بما فيها إدارة المستخدمين والنسخ الاحتياطي |
-| **مدير** | إدارة الفروع وقوائم الفحص، اعتماد التدقيقات، إدارة المستخدمين |
-| **مدقق** | إنشاء وتنفيذ التدقيقات الخاصة به |
-| **فرع** | متابعة تدقيقات فرعه والإجراءات التصحيحية الخاصة به |
-| **مشاهد** | عرض فقط بدون تعديل |
+    for sec in GUIDE_SECTIONS:
+        accent = sec["accent"]
+        title = sec["title"][lang]
+        with st.expander(f"{sec['icon']}  {title}"):
+            st.markdown(
+                f'<div style="height:3px; background:{accent}; border-radius:2px; '
+                f'margin-bottom:12px; width:60px;"></div>',
+                unsafe_allow_html=True,
+            )
+            if "table" in sec:
+                rows_html = "".join(
+                    f'<tr><td style="padding:8px 12px; font-weight:700; color:{accent}; '
+                    f'white-space:nowrap; vertical-align:top;">{row[lang][0]}</td>'
+                    f'<td style="padding:8px 12px; color:#333;">{row[lang][1]}</td></tr>'
+                    for row in sec["table"]
+                )
+                st.markdown(
+                    f'<table style="width:100%; border-collapse:collapse;">{rows_html}</table>',
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(sec["body"][lang])
 
----
-
-### 📊 لوحة المعلومات (Dashboard)
-- **لوحة حالة الفروع**: بطاقات ملوّنة تعطيك نظرة سريعة على أداء كل فرع
-  (🟢 أخضر = ممتاز 90%+، 🟡 برتقالي = جيد 75-89%، 🔴 أحمر = يحتاج متابعة).
-- **الفلاتر**: صفّي البيانات حسب فرع معيّن أو فترة زمنية محددة.
-- **الرسوم البيانية**: توزيع حالات التدقيق ومتوسط النتيجة لكل فرع.
-
-### 🏢 الفروع
-أضيفي فروع جديدة، وحدّثي حالتها (نشط / غير نشط / موقوف) من هنا.
-
-### 📋 قوائم الفحص
-أضيفي نُسخ قوائم فحص، أقسام، وأسئلة تدقيق جديدة. كل سؤال له وزن يُستخدم بحساب النتيجة.
-
-### 🔍 التدقيقات
-1. **تدقيق جديد**: اختاري الفرع وتاريخ الزيارة لجدولة تدقيق.
-2. **تنفيذ / مراجعة**: أجيبي على الأسئلة (متوافق / غير متوافق / لا ينطبق)، احفظي كمسودة
-   أو أرسلي التدقيق النهائي. عند وجود إجابة "غير متوافق"، يُنشأ إجراء تصحيحي تلقائيًا.
-3. النتيجة النهائية = (مجموع أوزان الأسئلة المتوافقة) ÷ (مجموع أوزان الأسئلة القابلة للتطبيق) × 100.
-
-### 🛠️ الإجراءات التصحيحية
-تابعي الإجراءات المفتوحة، حدّثي حالتها، وأضيفي ملاحظة عند الحل.
-
-### 👥 المستخدمون
-أضيفي مستخدمين جدد وحدّدي أدوارهم (يظهر فقط للمالك والمدير).
-
-### 📈 التقارير
-حمّلي تقرير PDF لتدقيق معيّن، أو صدّري كل التدقيقات كملف Excel.
-
-### 📜 سجل النشاط
-سجل كامل لكل العمليات الحساسة بالنظام (من فعل ماذا ومتى).
-
-### 🤖 المساعد الذكي
-اسألي عن بيانات النظام أو احصلي على ملخص وتوصيات ذكية لأي تدقيق مُرسل.
-
-### 💾 النسخ الاحتياطي
-**مهم جدًا**: نزّلي نسخة احتياطية بشكل دوري (أسبوعيًا مثلاً) من صفحة "النسخ الاحتياطي"
-لحماية بياناتك من أي طارئ.
-
-### 🌐 تبديل اللغة
-قائمة تبديل اللغة أعلى الصفحة تبدّل لغة الواجهة بالكامل فورًا.
-
----
-*آخر تحديث لهذا الدليل: يُحدَّث هذا الدليل مع كل تحديث جديد بالنظام.*
-"""
-
-    GUIDE_EN = """
-### 🗂️ Overview
-The NXN Branch Quality Management System helps you organize quality audits across all
-branches, track results, and manage corrective actions from one place.
-
----
-
-### 👤 Roles & Permissions
-| Role | Permissions |
-|---|---|
-| **Owner** | Full access, including user management and backups |
-| **Manager** | Manage branches, checklists, approve audits, manage users |
-| **Auditor** | Create and conduct their own audits |
-| **Branch** | Track their branch's audits and corrective actions |
-| **Viewer** | Read-only access |
-
----
-
-### 📊 Dashboard
-- **Branch Status Board**: colored cards give you an instant view of each branch's
-  performance (🟢 Green = excellent 90%+, 🟡 Orange = good 75-89%, 🔴 Red = needs attention).
-- **Filters**: filter data by specific branch or date range.
-- **Charts**: audit status distribution and average score per branch.
-
-### 🏢 Branches
-Add new branches and update their status (active / inactive / suspended) here.
-
-### 📋 Checklist
-Add checklist versions, sections, and audit questions. Each question has a weight
-used in score calculation.
-
-### 🔍 Audits
-1. **New Audit**: choose the branch and visit date to schedule an audit.
-2. **Conduct / Review**: answer the questions (compliant / non-compliant / not
-   applicable), save as draft or submit the final audit. A "non-compliant" answer
-   automatically creates a corrective action.
-3. Final score = (sum of weights of compliant questions) ÷ (sum of weights of
-   applicable questions) × 100.
-
-### 🛠️ Corrective Actions
-Track open actions, update their status, and add a resolution note.
-
-### 👥 Users
-Add new users and assign their roles (visible to Owner and Manager only).
-
-### 📈 Reports
-Download a PDF report for a specific audit, or export all audits as an Excel file.
-
-### 📜 Audit Log
-A complete log of every sensitive operation in the system (who did what, and when).
-
-### 🤖 AI Assistant
-Ask about system data or get a smart summary and recommendations for any submitted audit.
-
-### 💾 Backup
-**Very important**: download a backup regularly (weekly, for example) from the
-"Backup" page to protect your data from any unexpected issue.
-
-### 🌐 Language Switching
-The language dropdown at the top of the page switches the entire interface language
-instantly.
-
----
-*This guide is kept up to date with every new system update.*
-"""
-
-    st.markdown(GUIDE_AR if lang == "ar" else GUIDE_EN)
+    st.divider()
+    st.caption(
+        "🔄 " + (
+            "آخر تحديث لهذا الدليل: يُحدَّث هذا الدليل مع كل تحديث جديد بالنظام."
+            if lang == "ar" else
+            "Last updated with the system: this guide is refreshed alongside every system update."
+        )
+    )
 
 # ==================================================================
 # التبويب الثاني: جولة تفاعلية إرشادية
