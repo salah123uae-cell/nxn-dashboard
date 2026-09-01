@@ -130,7 +130,7 @@ if user:
     lc1, lc2, lc3, lc4 = st.columns(4)
     lc1.metric(t('nav_branches'), _total_branches)
     lc2.metric(t('total_audits'), _total_audits)
-    lc3.metric(t('open_corrective_actions').replace("🛠️ ", ""), _open_actions)
+    lc3.metric(t('open_corrective_actions'), _open_actions)
     lc4.metric(t('avg_score'), f"{_avg_score}%")
     st.divider()
 else:
