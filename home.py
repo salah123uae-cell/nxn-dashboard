@@ -4,13 +4,21 @@ from auth import (
     create_signup_request, create_password_reset_request,
 )
 from database import init_db, get_session
-from models import User, Credential, Branch, ChecklistVersion, AuditSection, AuditQuestion
+from models import User, Credential, Branch, ChecklistVersion, AuditSection, AuditQuestion, Audit, CorrectiveAction
 from branding import render_logo, apply_theme, render_hero_banner
 from i18n import t, get_lang
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
 render_logo()
+
+# قبل تسجيل الدخول: نخفي سهم فتح/طيّ الشريط الجانبي بالكامل (لا حاجة له
+# بصفحة تسجيل الدخول أصلًا بما إن القائمة مخفية حتى الدخول).
+if not current_user():
+    st.markdown(
+        '<style>[data-testid="collapsedControl"] {display: none !important;}</style>',
+        unsafe_allow_html=True,
+    )
 
 # ---------- التأكد من وجود الجداول (مرة واحدة فقط بكل جلسة، لتفادي الفحص المتكرر) ----------
 if "db_initialized" not in st.session_state:
@@ -21,8 +29,7 @@ with get_session() as _s:
     _has_users = _s.query(User).count() > 0
 
 if not _has_users:
-    st.title(t("app_title"))
-    st.subheader(t("setup_title"))
+    render_hero_banner(title=t("app_title"), subtitle=t("setup_title"))
     st.info(t("setup_info"))
 
     with st.form("initial_setup"):
@@ -99,8 +106,7 @@ if not _has_users:
 
     st.stop()
 
-st.title(t("app_title"))
-st.caption(t("app_caption"))
+render_hero_banner(title=t("app_title"), subtitle=t("app_caption"))
 
 user = current_user()
 
@@ -109,6 +115,24 @@ if user:
     role_label = ROLE_LABELS_AR.get(user["role"], user["role"])
     welcome_text = t("welcome_msg", name=user["name"], role=role_label).replace("**", "")
     render_hero_banner(title=welcome_text, subtitle=t("nav_hint"))
+
+    # ---------- داشبورد حي: مؤشرات لحظية مباشرة أعلى الصفحة الرئيسية ----------
+    with get_session() as _s:
+        _total_branches = _s.query(Branch).filter(Branch.status == "active").count()
+        _total_audits = _s.query(Audit).count()
+        _open_actions = _s.query(CorrectiveAction).filter(
+            CorrectiveAction.status.in_(["open", "in_progress"])
+        ).count()
+        _scored = [a.score for a in _s.query(Audit).filter(Audit.score.isnot(None)).all()]
+    _avg_score = round(sum(_scored) / len(_scored), 1) if _scored else 0
+
+    st.markdown(f"##### {t('live_dashboard_title')}")
+    lc1, lc2, lc3, lc4 = st.columns(4)
+    lc1.metric(t('nav_branches'), _total_branches)
+    lc2.metric(t('total_audits'), _total_audits)
+    lc3.metric(t('open_corrective_actions').replace("🛠️ ", ""), _open_actions)
+    lc4.metric(t('avg_score'), f"{_avg_score}%")
+    st.divider()
 else:
     tab_login, tab_signup, tab_forgot = st.tabs([
         t("login_tab_login"), t("login_tab_signup"), t("login_tab_forgot"),
