@@ -47,12 +47,8 @@ def calculate_audit_score(answers: list[dict], questions_by_id: dict) -> float:
 
 def score_badge(score: float | None) -> str:
     if score is None:
-        return "⚪ غير محسوبة"
-    if score >= 90:
-        return f"🟢 {score}%"
-    if score >= 75:
-        return f"🟡 {score}%"
-    return f"🔴 {score}%"
+        return "غير محسوبة"
+    return f"{score}%"
 
 
 def export_audits_to_excel(df: pd.DataFrame) -> bytes:
@@ -117,3 +113,4 @@ def export_audit_report_pdf(audit_info: dict, answers_rows: list[dict]) -> bytes
 
     doc.build(elements)
     return buf.getvalue()
+
