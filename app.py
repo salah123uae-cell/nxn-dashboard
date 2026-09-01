@@ -17,7 +17,7 @@ from auth import current_user
 
 st.set_page_config(
     page_title="NXN Quality System | نظام NXN لإدارة الجودة",
-    page_icon="✅",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="collapsed",
 )
