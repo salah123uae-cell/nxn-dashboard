@@ -1,5 +1,5 @@
 """
-وحدة الذكاء الاصطناعي والوكيل الذكي — تستخدم Claude من Anthropic لتحليل بيانات
+وحدة الذكاء الاصطناعي والوكيل الذكي — تستخدم نموذج ذكاء اصطناعي لتحليل بيانات
 جودة الفروع، توليد ملخصات وتوصيات ذكية، والرد على استفسارات المستخدمين.
 """
 import os
@@ -15,14 +15,17 @@ MAX_CHAT_MESSAGES_PER_SESSION = 20  # حد أقصى للرسائل بكل جلس
 
 
 def _get_api_key() -> str:
-    key = os.getenv("ANTHROPIC_API_KEY", "")
-    if key:
-        return key
-    try:
-        if "ANTHROPIC_API_KEY" in st.secrets:
-            return st.secrets["ANTHROPIC_API_KEY"]
-    except Exception:
-        pass
+    # ندعم اسمين للمفتاح: AI_API_KEY (الاسم العام الموصى به بالتعليمات المعروضة
+    # للمستخدم) و ANTHROPIC_API_KEY (للتوافق مع أي إعداد سابق تم ضبطه بهذا الاسم).
+    for env_name in ("AI_API_KEY", "ANTHROPIC_API_KEY"):
+        key = os.getenv(env_name, "")
+        if key:
+            return key
+        try:
+            if env_name in st.secrets:
+                return st.secrets[env_name]
+        except Exception:
+            pass
     return ""
 
 
@@ -35,7 +38,7 @@ def ask_claude(system_prompt: str, user_prompt: str, max_tokens: int = 500) -> s
     """يرسل طلبًا لنموذج Claude ويرجع الرد النصي. يرمي استثناء عند الفشل."""
     api_key = _get_api_key()
     if not api_key:
-        raise RuntimeError("لم يتم ضبط مفتاح ANTHROPIC_API_KEY بعد.")
+        raise RuntimeError("لم يتم ضبط مفتاح تفعيل خدمة الذكاء الاصطناعي (AI_API_KEY) بعد.")
     if anthropic is None:
         raise RuntimeError("مكتبة anthropic غير مثبتة. أضفها لملف requirements.txt.")
 
@@ -101,3 +104,4 @@ def chat_with_assistant(user_message: str, context_summary: str, history: list) 
 سؤال المستخدم الجديد: {user_message}
 """
     return ask_claude(system_prompt, user_prompt, max_tokens=500)
+
