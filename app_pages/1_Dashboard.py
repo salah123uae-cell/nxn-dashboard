@@ -8,6 +8,7 @@ from auth import require_login, current_user, render_logout_sidebar
 from database import get_session
 from models import Audit, CorrectiveAction
 from data_cache import get_branches_by_id_cached
+from utils import style_status_badges, CORRECTIVE_STATUS_COLORS, PRIORITY_COLORS
 from i18n import t, get_lang
 
 lang = get_lang()
@@ -180,7 +181,11 @@ if open_actions:
         t("title_col"): a["title"], t("owner_col"): a["owner_email"],
         t("priority_col"): a["priority"], t("status_col"): a["status"], t("due_col"): a["due_at"],
     } for a in open_actions])
-    st.dataframe(adf, use_container_width=True, hide_index=True)
+    styled_adf = style_status_badges(adf, {
+        t("priority_col"): PRIORITY_COLORS,
+        t("status_col"): CORRECTIVE_STATUS_COLORS,
+    })
+    st.dataframe(styled_adf, use_container_width=True, hide_index=True)
 else:
     st.success(t("no_open_actions"))
 
