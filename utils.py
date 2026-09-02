@@ -26,6 +26,7 @@ AUDIT_STATUS_COLORS = {
     "reviewed": "#8B5CF6", "closed": "#22C55E", "cancelled": "#6B7280",
 }
 BRANCH_STATUS_COLORS = {"active": "#22C55E", "inactive": "#6B7280", "suspended": "#EF4444"}
+ACTIVE_STATUS_COLORS = {True: "#22C55E", False: "#EF4444"}
 
 
 def generate_reference() -> str:
