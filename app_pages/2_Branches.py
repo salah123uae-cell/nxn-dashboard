@@ -6,7 +6,7 @@ from auth import require_login, current_user, log_action, render_logout_sidebar
 from database import get_session
 from models import Branch
 from data_cache import get_branches_cached, clear_reference_cache
-from utils import paginate_dataframe
+from utils import paginate_dataframe, style_status_badges, BRANCH_STATUS_COLORS
 from i18n import t, get_lang
 
 lang = get_lang()
@@ -28,7 +28,11 @@ with get_session() as s:
         t("branch_manager_col"): b.manager_email or "—",
     } for b in branches_raw]
 
-st.dataframe(paginate_dataframe(pd.DataFrame(data), key_prefix="branches_list"), use_container_width=True, hide_index=True)
+_page = paginate_dataframe(pd.DataFrame(data), key_prefix="branches_list")
+if not _page.empty:
+    st.dataframe(style_status_badges(_page, {t("status_col"): BRANCH_STATUS_COLORS}), use_container_width=True, hide_index=True)
+else:
+    st.dataframe(_page, use_container_width=True, hide_index=True)
 
 if can_edit:
     st.divider()
