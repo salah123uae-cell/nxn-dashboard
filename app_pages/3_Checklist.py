@@ -6,6 +6,7 @@ from auth import require_login, current_user, log_action, render_logout_sidebar
 from database import get_session
 from models import ChecklistVersion, AuditSection, AuditQuestion
 from data_cache import clear_reference_cache
+from utils import style_status_badges, CHECKLIST_VERSION_STATUS_COLORS, ACTIVE_STATUS_COLORS
 from i18n import t, get_lang
 
 lang = get_lang()
@@ -28,7 +29,10 @@ with tab1:
             t("code_col"): v.code, t("name_ar_col"): v.name_ar, t("status_col"): v.status,
             t("created_by_col"): v.created_by,
         } for v in versions])
-    st.dataframe(vdf, use_container_width=True, hide_index=True)
+    if not vdf.empty:
+        st.dataframe(style_status_badges(vdf, {t("status_col"): CHECKLIST_VERSION_STATUS_COLORS}), use_container_width=True, hide_index=True)
+    else:
+        st.dataframe(vdf, use_container_width=True, hide_index=True)
 
     if can_edit:
         with st.form("add_version"):
@@ -52,7 +56,10 @@ with tab2:
             t("code_col"): sec.code, t("name_ar_col"): sec.name_ar, t("weight_col"): sec.weight,
             t("sort_order_col"): sec.sort_order, t("active_col"): sec.active,
         } for sec in sections])
-    st.dataframe(sdf, use_container_width=True, hide_index=True)
+    if not sdf.empty:
+        st.dataframe(style_status_badges(sdf, {t("active_col"): ACTIVE_STATUS_COLORS}), use_container_width=True, hide_index=True)
+    else:
+        st.dataframe(sdf, use_container_width=True, hide_index=True)
 
     if can_edit:
         with st.form("add_section"):
@@ -82,7 +89,10 @@ with tab3:
             t("checklist_version_col"): q.checklist_version, t("active_col"): q.active,
         } for q in questions])
         sections = {sec_id: {"id": sec.id, "name_ar": sec.name_ar, "code": sec.code} for sec_id, sec in sections_raw.items()}
-    st.dataframe(qdf, use_container_width=True, hide_index=True)
+    if not qdf.empty:
+        st.dataframe(style_status_badges(qdf, {t("active_col"): ACTIVE_STATUS_COLORS}), use_container_width=True, hide_index=True)
+    else:
+        st.dataframe(qdf, use_container_width=True, hide_index=True)
 
     if can_edit and sections:
         with st.form("add_question"):
