@@ -11,7 +11,7 @@ from auth import (
 from database import get_session
 from models import User, Credential, SignupRequest, PasswordResetRequest
 from data_cache import get_branches_cached
-from utils import paginate_dataframe
+from utils import paginate_dataframe, style_status_badges, ACTIVE_STATUS_COLORS
 from i18n import t, get_lang
 
 lang = get_lang()
@@ -46,7 +46,11 @@ with tab_list:
             "managed_branch_ids": json.loads(u.managed_branch_ids or "[]"),
         } for u in users_raw]
 
-    st.dataframe(paginate_dataframe(pd.DataFrame(rows), key_prefix="users_list"), use_container_width=True, hide_index=True)
+    _page = paginate_dataframe(pd.DataFrame(rows), key_prefix="users_list")
+    if not _page.empty:
+        st.dataframe(style_status_badges(_page, {t("active_status_col"): ACTIVE_STATUS_COLORS}), use_container_width=True, hide_index=True)
+    else:
+        st.dataframe(_page, use_container_width=True, hide_index=True)
 
     st.divider()
     st.subheader(t("add_user_title"))
