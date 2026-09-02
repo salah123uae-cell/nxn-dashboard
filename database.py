@@ -3,6 +3,12 @@
 افتراضيًا يستخدم SQLite (ملف واحد بسيط، بدون أي تثبيت أو إعداد) — مناسب للتشغيل
 المحلي المباشر بدون تعقيد. إذا احتجت PostgreSQL لاحقًا (مثلاً عند النشر أونلاين)،
 يكفي تضبط DATABASE_URL في ملف .env أو st.secrets.
+
+مهم جدًا: لو تشغّل النظام على استضافة سحابية (مثل Streamlit Cloud) بدون DATABASE_URL
+مضبوط بشكل صحيح، يرجع تلقائيًا لملف SQLite محلي — وهذا الملف يُمسح بالكامل مع كل
+إعادة تشغيل للخادم (نشر تحديث جديد مثلًا)، فتضيع كل البيانات! لذا هذا الملف يتتبّع
+صراحة هل الاتصال الفعلي ناجح بقاعدة البيانات الدائمة المضبوطة، ويعرض تحذيرًا واضحًا
+لو رجع للوضع المؤقت غير الآمن — بدل ما يفشل بصمت.
 """
 import os
 import tempfile
@@ -15,9 +21,14 @@ from models import Base
 
 load_dotenv()
 
+# تصبح True فقط لو DATABASE_URL انقرأ فعليًا من البيئة أو الأسرار (يعني قاعدة بيانات
+# دائمة مضبوطة عمدًا)، و False لو رجعنا تلقائيًا لملف SQLite المؤقت الافتراضي.
+IS_PERSISTENT_DB_CONFIGURED = False
 
-def _get_setting(key: str, default: str = "") -> str:
-    """يقرأ الإعداد من متغيرات البيئة أولًا، ثم من st.secrets إن وُجد (نشر سحابي)."""
+
+def _get_setting(key: str) -> str | None:
+    """يقرأ الإعداد من متغيرات البيئة أولًا، ثم من st.secrets إن وُجد (نشر سحابي).
+    يرجع None صراحة لو الإعداد غير موجود بأي مصدر — لا نُخفي هذا كخطأ صامت."""
     val = os.getenv(key)
     if val:
         return val
@@ -26,8 +37,10 @@ def _get_setting(key: str, default: str = "") -> str:
         if key in st.secrets:
             return st.secrets[key]
     except Exception:
+        # لو فشلت قراءة st.secrets لأي سبب (غير موجودة أصلًا محليًا مثلًا)، هذا متوقّع
+        # فقط عند التشغيل المحلي بدون secrets.toml — لا نعتبره خطأ حقيقي هنا.
         pass
-    return default
+    return None
 
 
 def _default_sqlite_path() -> str:
@@ -49,8 +62,16 @@ def _default_sqlite_path() -> str:
     return os.path.join(tempfile.gettempdir(), "nxn_quality.db").replace("\\", "/")
 
 
-# افتراضيًا: ملف SQLite في أول مجلد قابل للكتابة (صفر إعدادات، ويعمل محليًا وسحابيًا)
-DATABASE_URL = _get_setting("DATABASE_URL", f"sqlite:///{_default_sqlite_path()}")
+_configured_url = _get_setting("DATABASE_URL")
+if _configured_url:
+    DATABASE_URL = _configured_url
+    IS_PERSISTENT_DB_CONFIGURED = True
+else:
+    # لا يوجد DATABASE_URL مضبوط بأي مصدر — نرجع لملف SQLite مؤقت (غير آمن على
+    # الاستضافة السحابية، البيانات تُمسح مع كل إعادة تشغيل). هذا الوضع يُعرض
+    # كتحذير واضح بالواجهة عبر is_persistent_db_configured() بدل ما يمر بصمت.
+    DATABASE_URL = f"sqlite:///{_default_sqlite_path()}"
+    IS_PERSISTENT_DB_CONFIGURED = False
 
 # بعض مزوّدي الاستضافة (مثل Neon, Heroku, Railway) يعطون رابطًا يبدأ بـ postgres://
 # لكن SQLAlchemy الحديث (2.x) يشترط postgresql:// — نصحّح الصيغة تلقائيًا هنا.
@@ -66,6 +87,13 @@ _connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite"
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=_connect_args)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
+
+def is_persistent_db_configured() -> bool:
+    """يرجع True لو قاعدة البيانات الفعلية المستخدمة هي القاعدة الدائمة المضبوطة
+    (Postgres مثلًا)، و False لو النظام يعمل حاليًا على SQLite المؤقت الافتراضي
+    (يعني البيانات معرّضة للضياع مع كل إعادة تشغيل للخادم)."""
+    return IS_PERSISTENT_DB_CONFIGURED
 
 
 def init_db():
@@ -104,3 +132,4 @@ def get_session():
         raise
     finally:
         session.close()
+
