@@ -15,6 +15,18 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 
+# ---------- ألوان موحّدة لتلوين خلايا الحالة/الأولوية بالجداول (بدون أيقونات) ----------
+CORRECTIVE_STATUS_COLORS = {
+    "open": "#EF4444", "in_progress": "#F59E0B", "pending_review": "#3B82F6",
+    "closed": "#22C55E", "rejected": "#6B7280",
+}
+PRIORITY_COLORS = {"high": "#EF4444", "medium": "#F59E0B", "low": "#22C55E"}
+AUDIT_STATUS_COLORS = {
+    "scheduled": "#6B7280", "draft": "#F59E0B", "submitted": "#3B82F6",
+    "reviewed": "#8B5CF6", "closed": "#22C55E", "cancelled": "#6B7280",
+}
+BRANCH_STATUS_COLORS = {"active": "#22C55E", "inactive": "#6B7280", "suspended": "#EF4444"}
+
 
 def generate_reference() -> str:
     """يولّد رقمًا مرجعيًا فريدًا للتدقيق، مثل AUD-20260818-XJ29"""
@@ -50,6 +62,26 @@ def score_badge(score: float | None) -> str:
     if score is None:
         return "غير محسوبة"
     return f"{score}%"
+
+
+def style_status_badges(df: pd.DataFrame, column_color_maps: dict):
+    """يلوّن خلايا أعمدة معيّنة (حالة، أولوية...) بخلفية ملوّنة حسب قيمتها،
+    بدل النص العادي المسطّح — لجعل الجداول أوضح وأسرع قراءة بلمحة، وبدون أي
+    أيقونات (اللون وحده كافٍ للتمييز). column_color_maps: {اسم_العمود: {قيمة: لون}}."""
+    styler = df.style
+
+    def _make_fn(color_map):
+        def _fn(val):
+            color = color_map.get(val)
+            if not color:
+                return ""
+            return f"background-color:{color}; color:white; font-weight:600; border-radius:6px;"
+        return _fn
+
+    for col, color_map in column_color_maps.items():
+        if col in df.columns:
+            styler = styler.map(_make_fn(color_map), subset=[col])
+    return styler
 
 
 def paginate_dataframe(df: pd.DataFrame, key_prefix: str, page_size: int = 15, search_label: str = "بحث"):
