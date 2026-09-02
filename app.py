@@ -9,10 +9,13 @@
 قبل تسجيل الدخول: تظهر فقط صفحة "الرئيسية" (بدون بقية عناصر القائمة، لأنها
 غير مفيدة لمستخدم غير مسجّل دخول أصلًا وتضغط الشريط الجانبي بلا داعٍ)، والشريط
 الجانبي يبدأ مطويًا لتفادي تغطية شاشة الدخول على الجوال.
-بعد تسجيل الدخول: تظهر القائمة الكاملة، والشريط الجانبي يبقى مفتوحًا بشكل
-دائم (نخفي سهم الطي حتى لا يُغلق بالخطأ).
+بعد تسجيل الدخول: تظهر القائمة الكاملة، ونجبر الشريط الجانبي على الفتح تلقائيًا
+عبر جافاسكريبت (لأن initial_sidebar_state لا يُعاد تطبيقه إلا عند أول تحميل
+كامل للصفحة، وليس بعد تسجيل الدخول عبر st.rerun() ضمن نفس الجلسة). سهم الطي
+يبقى ظاهرًا حتى تقدر المستخدمة تتحكم يدويًا لو رغبت.
 """
 import streamlit as st
+import streamlit.components.v1 as components
 from i18n import t, get_lang, language_switcher
 from branding import render_sidebar_logo, render_dev_credit
 from auth import current_user
@@ -26,12 +29,31 @@ st.set_page_config(
     initial_sidebar_state="expanded" if _is_logged_in else "collapsed",
 )
 
-# بعد تسجيل الدخول: نخفي سهم طيّ الشريط الجانبي بالكامل، بحيث تبقى القائمة
-# مفتوحة بشكل دائم ولا يقدر المستخدم يقفلها بالخطأ.
+# بعد تسجيل الدخول: نتأكد إن الشريط الجانبي مفتوح فعليًا (بضغط زر الفتح تلقائيًا
+# عبر جافاسكريبت لو كان مطويًا)، لأن initial_sidebar_state وحده لا يكفي بعد
+# تسجيل الدخول ضمن نفس الجلسة (st.rerun() لا يُعيد تطبيقه).
 if _is_logged_in:
-    st.markdown(
-        '<style>[data-testid="collapsedControl"] {display: none !important;}</style>',
-        unsafe_allow_html=True,
+    components.html(
+        """
+        <script>
+        (function() {
+            function openSidebarIfCollapsed() {
+                try {
+                    const doc = window.parent.document;
+                    const sidebar = doc.querySelector('[data-testid="stSidebar"]');
+                    const toggle = doc.querySelector('[data-testid="collapsedControl"]');
+                    if (toggle && toggle.offsetParent !== null) {
+                        toggle.click();
+                    }
+                } catch (e) {}
+            }
+            setTimeout(openSidebarIfCollapsed, 150);
+            setTimeout(openSidebarIfCollapsed, 500);
+            setTimeout(openSidebarIfCollapsed, 1000);
+        })();
+        </script>
+        """,
+        height=0,
     )
 
 # نقرأ اللغة الحالية فقط للتأكد من إعادة بناء القائمة عند كل تغيير (get_lang يقرأ من session_state)
