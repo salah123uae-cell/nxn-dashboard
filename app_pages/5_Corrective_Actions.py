@@ -6,6 +6,7 @@ from datetime import datetime
 from auth import require_login, current_user, log_action, render_logout_sidebar, can_manage_branch
 from database import get_session
 from models import CorrectiveAction, Audit
+from utils import style_status_badges, CORRECTIVE_STATUS_COLORS, PRIORITY_COLORS
 from i18n import t, get_lang
 
 lang = get_lang()
@@ -39,7 +40,15 @@ with get_session() as s:
     } for a in actions]
 
 df = pd.DataFrame(rows)
-st.dataframe(df.drop(columns=["id"]) if not df.empty else df, use_container_width=True, hide_index=True)
+if not df.empty:
+    display_df = df.drop(columns=["id"])
+    styled = style_status_badges(display_df, {
+        t("status_col"): CORRECTIVE_STATUS_COLORS,
+        t("priority_col"): PRIORITY_COLORS,
+    })
+    st.dataframe(styled, use_container_width=True, hide_index=True)
+else:
+    st.dataframe(df, use_container_width=True, hide_index=True)
 
 st.divider()
 st.subheader(t("update_action_title"))
