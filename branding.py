@@ -190,6 +190,38 @@ def apply_theme(direction: str = "rtl"):
             transition: box-shadow 0.2s ease;
         }}
 
+        /* ---------- القوائم القابلة للطي (st.expander) — بطاقات تفاعلية بحواف مدورة وحركة عند التحويم ---------- */
+        [data-testid="stExpander"] {{
+            border-radius: 14px !important;
+            border: 1.5px solid #E3E4F6 !important;
+            overflow: hidden;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }}
+        [data-testid="stExpander"]:hover {{
+            border-color: {BRAND_PURPLE} !important;
+            box-shadow: 0 4px 14px rgba(150, 60, 189, 0.12) !important;
+        }}
+        [data-testid="stExpander"] summary {{
+            font-weight: 600 !important;
+            padding: 12px 16px !important;
+            transition: background 0.2s ease;
+        }}
+        [data-testid="stExpander"] summary:hover {{
+            background: rgba(150, 60, 189, 0.06) !important;
+        }}
+        /* نسخة داكنة للـ expander داخل الشريط الجانبي (تغيير كلمة المرور مثلًا) */
+        [data-testid="stSidebar"] [data-testid="stExpander"] {{
+            border-color: rgba(255,255,255,0.15) !important;
+            background: rgba(255,255,255,0.04) !important;
+        }}
+        [data-testid="stSidebar"] [data-testid="stExpander"]:hover {{
+            border-color: {BRAND_LIME} !important;
+            box-shadow: 0 4px 14px rgba(68, 214, 44, 0.18) !important;
+        }}
+        [data-testid="stSidebar"] [data-testid="stExpander"] summary:hover {{
+            background: rgba(255,255,255,0.06) !important;
+        }}
+
         /* ---------- التنبيهات (info/success/warning/error) ---------- */
         [data-testid="stAlert"] {{
             border-radius: 14px;
@@ -234,26 +266,45 @@ def apply_theme(direction: str = "rtl"):
         [data-testid="stSidebar"] hr {{
             border-color: rgba(255,255,255,0.12) !important;
         }}
-        /* روابط التنقّل بالقائمة الجانبية */
+        /* روابط التنقّل بالقائمة الجانبية — بشكل بطاقات تفاعلية بدل نص عادي مسطّح */
         [data-testid="stSidebar"] a,
         [data-testid="stSidebarNav"] a {{
             color: #DADCFF !important;
-            border-radius: 10px !important;
+            border-radius: 12px !important;
             text-align: {"right" if direction == "rtl" else "left"} !important;
+            display: block !important;
+            padding: 12px 16px !important;
+            margin: 3px 8px !important;
+            font-weight: 500 !important;
+            font-size: 15px !important;
+            transition: all 0.2s ease !important;
+            border: 1px solid transparent !important;
         }}
         [data-testid="stSidebarNav"] ul, [data-testid="stSidebarNav"] li {{
             direction: {direction};
         }}
+        [data-testid="stSidebarNav"] li {{
+            margin-bottom: 2px !important;
+        }}
         [data-testid="stSidebar"] a:hover,
         [data-testid="stSidebarNav"] a:hover {{
-            background: rgba(255,255,255,0.08) !important;
+            background: rgba(255,255,255,0.10) !important;
             color: #FFFFFF !important;
+            border-color: rgba(255,255,255,0.15) !important;
+            transform: {"translateX(-4px)" if direction == "rtl" else "translateX(4px)"} !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25) !important;
         }}
         [data-testid="stSidebar"] a[aria-current="page"],
         [data-testid="stSidebarNav"] a[aria-current="page"] {{
-            background: {BRAND_LIME} !important;
+            background: linear-gradient(135deg, {BRAND_LIME} 0%, #2FA81D 100%) !important;
             color: #14123A !important;
             font-weight: 700 !important;
+            box-shadow: 0 4px 14px rgba(68, 214, 44, 0.35) !important;
+            border-color: transparent !important;
+        }}
+        [data-testid="stSidebar"] a[aria-current="page"]:hover,
+        [data-testid="stSidebarNav"] a[aria-current="page"]:hover {{
+            transform: none !important;
         }}
         /* أزرار تسجيل الخروج بالشريط الجانبي تبقى بألوان الهوية الزاهية */
         [data-testid="stSidebar"] .stButton>button {{
