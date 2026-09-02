@@ -318,6 +318,11 @@ TRANSLATIONS = {
     "reset_rejected_toast": {"ar": "تم رفض طلب الاستعادة", "en": "Reset request rejected"},
     "edit_user_full_title": {"ar": "تعديل بيانات مستخدم", "en": "Edit User Details"},
     "suspend_account_label": {"ar": "الحساب مفعّل (أوقفي المفتاح لإيقاف الحساب)", "en": "Account Active (toggle off to suspend)"},
+    "change_password_title": {"ar": "تغيير كلمة المرور", "en": "Change Password"},
+    "current_password_label": {"ar": "كلمة المرور الحالية", "en": "Current Password"},
+    "change_password_btn": {"ar": "تحديث كلمة المرور", "en": "Update Password"},
+    "password_changed_msg": {"ar": "تم تحديث كلمة المرور بنجاح", "en": "Password updated successfully"},
+    "current_password_wrong": {"ar": "كلمة المرور الحالية غير صحيحة", "en": "Current password is incorrect"},
 }
 
 
