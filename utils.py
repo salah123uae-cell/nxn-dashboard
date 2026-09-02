@@ -84,7 +84,7 @@ def style_status_badges(df: pd.DataFrame, column_color_maps: dict):
             color = color_map.get(val)
             if not color:
                 return ""
-            return f"background-color:{color}; color:white; font-weight:600; border-radius:6px;"
+            return f"background-color:{color}; color:white; font-weight:600; border-radius:6px; padding:4px 10px; text-align:center; display:inline-block;"
         return _fn
 
     for col, color_map in column_color_maps.items():
