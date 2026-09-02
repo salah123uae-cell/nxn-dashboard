@@ -261,8 +261,22 @@ def reject_password_reset(request_id: int, reviewer_email: str) -> tuple[bool, s
     return True, "reset_rejected"
 
 
+def change_own_password(user_id: int, current_password: str, new_password: str) -> tuple[bool, str]:
+    """يغيّر كلمة مرور المستخدم الحالي مباشرة، بعد التأكد من كلمة المرور الحالية.
+    لا يحتاج موافقة إدارية (بخلاف مسار \"نسيت كلمة المرور\") لأن المستخدم أثبت
+    هويته بالفعل بمعرفة كلمة المرور الحالية وتسجيل دخوله."""
+    with get_session() as s:
+        cred = s.query(Credential).filter(Credential.user_id == user_id).first()
+        if not cred or not verify_password(current_password, cred.password_hash):
+            return False, "current_password_incorrect"
+        cred.password_hash = hash_password(new_password)
+        cred.password_changed_at = datetime.utcnow()
+    return True, "password_changed"
+
+
 def render_logout_sidebar():
-    """يعرض اسم المستخدم الحالي وزر تسجيل الخروج بالشريط الجانبي — يظهر بكل صفحة."""
+    """يعرض اسم المستخدم الحالي، تغيير كلمة المرور، وزر تسجيل الخروج بالشريط
+    الجانبي — يظهر بكل صفحة."""
     from i18n import t  # استيراد محلي لتفادي أي حلقة استيراد دائرية
 
     user = current_user()
@@ -272,6 +286,26 @@ def render_logout_sidebar():
         st.divider()
         role_label = ROLE_LABELS_AR.get(user["role"], user["role"])
         st.caption(f"{user['name']} — {role_label}")
+
+        with st.expander(t("change_password_title")):
+            with st.form("change_own_password_form", clear_on_submit=True):
+                current_pw = st.text_input(t("current_password_label"), type="password")
+                new_pw1 = st.text_input(t("new_password_label2"), type="password", key="cop_new1")
+                new_pw2 = st.text_input(t("confirm_new_password_label"), type="password", key="cop_new2")
+                submitted = st.form_submit_button(t("change_password_btn"))
+                if submitted:
+                    if not current_pw or not new_pw1:
+                        st.error(t("fill_required"))
+                    elif new_pw1 != new_pw2:
+                        st.error(t("password_mismatch"))
+                    else:
+                        ok, msg_key = change_own_password(user["id"], current_pw, new_pw1)
+                        if ok:
+                            log_action(user["email"], "change_password", "user", user["id"])
+                            st.success(t("password_changed_msg"))
+                        else:
+                            st.error(t("current_password_wrong"))
+
         if st.button(t("logout"), key="global_logout_btn", use_container_width=True):
             logout()
             st.rerun()
