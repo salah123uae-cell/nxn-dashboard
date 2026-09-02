@@ -323,6 +323,17 @@ TRANSLATIONS = {
     "change_password_btn": {"ar": "تحديث كلمة المرور", "en": "Update Password"},
     "password_changed_msg": {"ar": "تم تحديث كلمة المرور بنجاح", "en": "Password updated successfully"},
     "current_password_wrong": {"ar": "كلمة المرور الحالية غير صحيحة", "en": "Current password is incorrect"},
+    "db_not_persistent_warning": {
+        "ar": "تحذير حرج: رابط قاعدة البيانات الدائمة (DATABASE_URL) غير متصل فعليًا حاليًا. "
+              "النظام يعمل الآن على تخزين مؤقت — كل البيانات (مستخدمين، فروع، تدقيقات...) "
+              "ستُمسح بالكامل عند إعادة تشغيل الخادم القادمة. الرجاء التأكد من ضبط "
+              "DATABASE_URL بشكل صحيح من Manage app → Settings → Secrets فورًا.",
+        "en": "Critical warning: the persistent database connection (DATABASE_URL) is not "
+              "actually active right now. The system is running on temporary storage — all "
+              "data (users, branches, audits...) will be completely wiped on the next server "
+              "restart. Please verify DATABASE_URL is correctly set under "
+              "Manage app → Settings → Secrets immediately.",
+    },
 }
 
 
