@@ -27,6 +27,14 @@ AUDIT_STATUS_COLORS = {
 }
 BRANCH_STATUS_COLORS = {"active": "#22C55E", "inactive": "#6B7280", "suspended": "#EF4444"}
 ACTIVE_STATUS_COLORS = {True: "#22C55E", False: "#EF4444"}
+CHECKLIST_VERSION_STATUS_COLORS = {"draft": "#F59E0B", "active": "#22C55E", "retired": "#6B7280"}
+AUDIT_ACTION_COLORS = {
+    "create": "#3B82F6", "submit": "#3B82F6", "upload_evidence": "#3B82F6", "import": "#3B82F6",
+    "approve": "#22C55E", "close": "#22C55E",
+    "update": "#F59E0B", "change_password": "#F59E0B",
+    "reject": "#EF4444", "lockout": "#EF4444",
+    "login": "#6B7280", "logout": "#6B7280", "export": "#6B7280",
+}
 
 
 def generate_reference() -> str:
