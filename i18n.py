@@ -347,21 +347,16 @@ def t(key: str, **kwargs) -> str:
 
 
 def language_switcher():
-    """يعرض قائمة منسدلة صغيرة أعلى يمين المحتوى لتبديل اللغة (عربي/إنجليزي)."""
+    """يعرض زرًا تفاعليًا واحدًا أعلى يمين المحتوى لتبديل اللغة فورًا (عربي/إنجليزي)
+    بضغطة واحدة، بدل القائمة المنسدلة القديمة — يتبع نفس تصميم الأزرار المتدرّج
+    الملوّن المستخدم بباقي صفحات النظام."""
     current = get_lang()
-    options = ["ar", "en"]
-    labels = {"ar": "AR", "en": "EN"}
-    _spacer, corner = st.columns([6, 1])
+    target = "en" if current == "ar" else "ar"
+    target_label = "English" if target == "en" else "العربية"
+
+    _spacer, corner = st.columns([5, 1])
     with corner:
-        choice = st.selectbox(
-            "language_switcher_select",
-            options,
-            index=options.index(current),
-            format_func=lambda code: labels[code],
-            key="lang_select",
-            label_visibility="collapsed",
-        )
-    if choice != current:
-        st.session_state["lang"] = choice
-        st.rerun()
+        if st.button(target_label, key="lang_toggle_btn", use_container_width=True):
+            st.session_state["lang"] = target
+            st.rerun()
 
