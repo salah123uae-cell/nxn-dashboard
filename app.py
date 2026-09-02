@@ -19,6 +19,7 @@ import streamlit.components.v1 as components
 from i18n import t, get_lang, language_switcher
 from branding import render_sidebar_logo, render_dev_credit
 from auth import current_user
+from database import is_persistent_db_configured
 
 _is_logged_in = current_user() is not None
 
@@ -68,6 +69,15 @@ render_dev_credit()
 # تبديل اللغة يُستدعى هنا (بالموجّه) بدل كل صفحة على حدة، ليظهر بنفس الموضع
 # الثابت أعلى الشاشة بكل صفحات النظام دون تكرار الكود.
 language_switcher()
+
+# ---------- تحذير حرج: لو قاعدة البيانات الدائمة (Postgres) غير متصلة فعليًا،
+# النظام يعمل على تخزين مؤقت تُمسح بياناته بالكامل مع كل إعادة تشغيل للخادم.
+# يظهر فقط لمالك النظام (الوحيد القادر يصلح إعداد الأسرار) حتى ينتبه فورًا
+# بدل ما يكتشف إن بياناته ضاعت بدون أي سبب واضح له.
+if _is_logged_in:
+    _user = current_user()
+    if _user and _user["role"] == "owner" and not is_persistent_db_configured():
+        st.error(t("db_not_persistent_warning"), icon=None)
 
 home_page = st.Page("home.py", title=t("nav_home"), url_path="", default=True)
 
