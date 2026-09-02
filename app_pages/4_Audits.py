@@ -6,7 +6,7 @@ from datetime import datetime
 from auth import require_login, current_user, log_action, render_logout_sidebar, can_manage_branch
 from database import get_session
 from models import Audit, AuditAnswer, AuditQuestion, Branch, CorrectiveAction, EvidenceFile
-from utils import generate_reference, calculate_audit_score, score_badge, export_audits_to_excel
+from utils import generate_reference, calculate_audit_score, score_badge, export_audits_to_excel, style_status_badges, AUDIT_STATUS_COLORS
 from data_cache import get_branches_by_id_cached, get_active_branches_cached, get_questions_for_version_cached, get_sections_cached
 from i18n import t, get_lang
 
@@ -44,7 +44,11 @@ with tab_list:
     status_filter = st.multiselect(t("filter_by_status"), options=["scheduled", "draft", "submitted", "reviewed", "closed", "cancelled"])
     if status_filter and not df.empty:
         df = df[df[t("status_col")].isin(status_filter)]
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    if not df.empty:
+        styled = style_status_badges(df, {t("status_col"): AUDIT_STATUS_COLORS})
+        st.dataframe(styled, use_container_width=True, hide_index=True)
+    else:
+        st.dataframe(df, use_container_width=True, hide_index=True)
 
     if not df.empty:
         excel_bytes = export_audits_to_excel(df)
