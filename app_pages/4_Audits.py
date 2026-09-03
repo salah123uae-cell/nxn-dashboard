@@ -3,12 +3,13 @@ from branding import render_logo, apply_theme
 import pandas as pd
 from datetime import datetime
 
-from auth import require_login, current_user, log_action, render_logout_sidebar, can_manage_branch
+from auth import require_login, current_user, log_action, render_logout_sidebar, can_view_audit, can_edit_audit
 from database import get_session
 from models import Audit, AuditAnswer, AuditQuestion, Branch, CorrectiveAction, EvidenceFile
 from utils import generate_reference, calculate_audit_score, score_badge, export_audits_to_excel, style_status_badges, AUDIT_STATUS_COLORS
 from data_cache import get_branches_by_id_cached, get_active_branches_cached, get_questions_for_version_cached, get_sections_cached
 from i18n import t, get_lang
+from audit_workflow import submit_audit
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
@@ -27,9 +28,7 @@ with tab_list:
     branches_by_id = get_branches_by_id_cached()
     with get_session() as s:
         audits = s.query(Audit).order_by(Audit.created_at.desc()).all()
-        # المستخدم بدور "فرع" يشوف فقط تدقيقات فرعه (أو فروعه) المُدارة
-        if user["role"] == "branch":
-            audits = [a for a in audits if can_manage_branch(user, a.branch_id)]
+        audits = [a for a in audits if can_view_audit(user, a)]
         rows = []
         for a in audits:
             rows.append({
@@ -96,9 +95,7 @@ with tab_new:
 with tab_conduct:
     with get_session() as s:
         audits = s.query(Audit).filter(Audit.status.in_(["scheduled", "draft", "submitted", "reviewed"])).all()
-        # المستخدم بدور "فرع" يشوف فقط تدقيقات فرعه (أو فروعه) المُدارة هنا أيضًا
-        if user["role"] == "branch":
-            audits = [a for a in audits if can_manage_branch(user, a.branch_id)]
+        audits = [a for a in audits if can_view_audit(user, a)]
         audit_options = {f"{a.reference} ({a.status})": a.id for a in audits}
 
     if not audit_options:
@@ -112,7 +109,8 @@ with tab_conduct:
             branch = s.query(Branch).get(audit.branch_id)
             existing_answers = {a.question_id: a for a in s.query(AuditAnswer).filter(AuditAnswer.audit_id == audit_id).all()}
 
-            audit_data = {"reference": audit.reference, "status": audit.status, "score": audit.score}
+            audit_data = {"reference": audit.reference, "status": audit.status, "score": audit.score,
+                          "auditor_email": audit.auditor_email, "branch_id": audit.branch_id}
             branch_name = branch.name_ar if branch else "—"
             checklist_version = audit.checklist_version
 
@@ -122,7 +120,7 @@ with tab_conduct:
 
         st.write(t("audit_summary_line", branch=branch_name, status=audit_data["status"], score=score_badge(audit_data["score"])))
 
-        editable = audit_data["status"] in ("scheduled", "draft") and user["role"] != "viewer"
+        editable = can_edit_audit(user, audit_data)
 
         # ---------- الأدلة المرفقة (صور/مستندات) ----------
         with st.expander(t("evidence_section_title"), expanded=False):
@@ -226,50 +224,21 @@ with tab_conduct:
             if unanswered:
                 st.error(t("unanswered_error", n=len(unanswered)))
             else:
+                payload = [{"question_id": qid, "answer": data["answer"], "note": data["note"]}
+                           for qid, data in answers_input.items()]
                 with get_session() as s:
-                    for qid, data in answers_input.items():
-                        existing = s.query(AuditAnswer).filter(AuditAnswer.audit_id == audit_id, AuditAnswer.question_id == qid).first()
-                        score_awarded = data["weight"] if data["answer"] == "compliant" else 0
-                        if existing:
-                            existing.answer = data["answer"]
-                            existing.note = data["note"]
-                            existing.score_awarded = score_awarded
-                            existing.answered_by = user["email"]
-                            existing.answered_at = datetime.utcnow()
-                        else:
-                            s.add(AuditAnswer(audit_id=audit_id, question_id=qid, answer=data["answer"],
-                                               score_awarded=score_awarded, note=data["note"],
-                                               answered_by=user["email"], answered_at=datetime.utcnow()))
-                    s.flush()
-                    all_answers = s.query(AuditAnswer).filter(AuditAnswer.audit_id == audit_id).all()
-                    qmap = {q.id: q for q in s.query(AuditQuestion).all()}
-                    score = calculate_audit_score(
-                        [{"question_id": a.question_id, "answer": a.answer} for a in all_answers], qmap
-                    )
-                    a = s.query(Audit).get(audit_id)
-                    a.status = "submitted"
-                    a.submitted_at = datetime.utcnow()
-                    a.score = score
-
-                    # إنشاء إجراء تصحيحي تلقائي لكل إجابة غير متوافقة
-                    for ans in all_answers:
-                        if ans.answer == "non_compliant":
-                            q = qmap.get(ans.question_id)
-                            s.add(CorrectiveAction(
-                                audit_id=audit_id, answer_id=ans.id,
-                                title=f"معالجة عدم توافق: {q.code if q else ans.question_id}",
-                                description=q.question_ar if q else "",
-                                owner_email=audit.auditor_email,
-                                due_at=datetime.utcnow(),
-                                priority="high", status="open",
-                            ))
-                    log_action(user["email"], "submit", "audit", audit_id, after={"score": score})
-                if any(a.answer == "non_compliant" for a in all_answers):
+                    score = submit_audit(s, audit_id, payload, user["email"])
+                    action_owners = {a.owner_email for a in s.query(CorrectiveAction).filter_by(audit_id=audit_id).all()}
+                    audit_reference = s.get(Audit, audit_id).reference
+                log_action(user["email"], "submit", "audit", audit_id, after={"score": score})
+                for owner_email in action_owners:
+                    if owner_email.startswith("branch:"):
+                        continue
                     from notifications import create_notification
                     create_notification(
-                        audit.auditor_email, "corrective_action_created",
+                        owner_email, "corrective_action_created",
                         "إجراءات تصحيحية جديدة",
-                        f"تم إنشاء إجراءات تصحيحية جديدة لك من التدقيق {audit.reference}.",
+                        f"تم إنشاء إجراءات تصحيحية جديدة لفرعك من التدقيق {audit_reference}.",
                     )
                 st.success(t("audit_submitted_msg", score=score))
                 st.rerun()
@@ -283,4 +252,3 @@ with tab_conduct:
                     log_action(user["email"], "close", "audit", audit_id)
                 st.success(t("audit_closed_msg"))
                 st.rerun()
-
