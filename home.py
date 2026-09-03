@@ -6,6 +6,7 @@ from auth import (
 from database import init_db, get_session
 from models import User, Credential, Branch, ChecklistVersion, AuditSection, AuditQuestion, Audit, CorrectiveAction
 from branding import render_logo, apply_theme, render_hero_banner
+from utils import password_strength
 from i18n import t, get_lang
 
 lang = get_lang()
@@ -44,6 +45,8 @@ if not _has_users:
                 st.error(t("fill_required"))
             elif owner_password != owner_password2:
                 st.error(t("password_mismatch"))
+            elif password_strength(owner_password)[0] <= 1:
+                st.error(t("weak_password_error"))
             else:
                 with get_session() as s:
                     owner = User(email=owner_email.strip().lower(), name=owner_name, role="owner")
@@ -196,6 +199,8 @@ else:
                     st.error(t("fill_required"))
                 elif s_pass1 != s_pass2:
                     st.error(t("password_mismatch"))
+                elif password_strength(s_pass1)[0] <= 1:
+                    st.error(t("weak_password_error"))
                 else:
                     ok, msg_key = create_signup_request(s_first, s_last, s_email, s_emp_num, s_pass1)
                     if ok:
@@ -217,6 +222,8 @@ else:
                     st.error(t("fill_required"))
                 elif f_pass1 != f_pass2:
                     st.error(t("password_mismatch"))
+                elif password_strength(f_pass1)[0] <= 1:
+                    st.error(t("weak_password_error"))
                 else:
                     ok, msg_key = create_password_reset_request(f_email, f_pass1)
                     if ok:
