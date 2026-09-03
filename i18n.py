@@ -42,6 +42,10 @@ TRANSLATIONS = {
     "create_account_btn": {"ar": "إنشاء الحساب وبدء النظام", "en": "Create Account & Start"},
     "fill_required": {"ar": "الرجاء تعبئة جميع الحقول المطلوبة (*)", "en": "Please fill in all required fields (*)"},
     "password_mismatch": {"ar": "كلمتا المرور غير متطابقتين", "en": "Passwords do not match"},
+    "weak_password_error": {
+        "ar": "كلمة المرور ضعيفة جدًا. استخدمي 8 أحرف على الأقل، ويُفضّل مزيج من حروف كبيرة وصغيرة وأرقام.",
+        "en": "Password is too weak. Use at least 8 characters, ideally mixing uppercase, lowercase, and numbers.",
+    },
     "account_created": {"ar": "تم إنشاء الحساب بنجاح! سجّل الدخول الآن من الأسفل.", "en": "Account created successfully! Log in below."},
     "welcome_msg": {"ar": "مرحبًا **{name}** — الدور: {role}", "en": "Welcome **{name}** — Role: {role}"},
     "nav_hint": {"ar": "استخدم القائمة الجانبية للتنقّل بين صفحات النظام.", "en": "Use the sidebar to navigate between system pages."},
