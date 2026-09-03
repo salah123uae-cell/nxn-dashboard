@@ -67,6 +67,36 @@ def calculate_audit_score(answers: list[dict], questions_by_id: dict) -> float:
     return round((earned_weight / applicable_weight) * 100, 2)
 
 
+def password_strength(password: str) -> tuple[int, str, str]:
+    """يقيّم قوة كلمة المرور (0-5) ويرجع (الدرجة، التسمية العربية، اللون).
+    معايير التقييم: الطول (8+ ثم 12+)، مزيج حروف كبيرة/صغيرة، أرقام، رموز خاصة.
+    ملاحظة: الحقل داخل st.form فلا يتحدّث التقييم لحظيًا مع كل حرف — يظهر فقط
+    كنتيجة واضحة بعد الضغط على زر الإرسال، بنفس أسلوب التحقق من تطابق كلمتي
+    المرور المستخدم بالفعل بهذي النماذج."""
+    if not password:
+        return 0, "", ""
+    score = 0
+    if len(password) >= 8:
+        score += 1
+    if len(password) >= 12:
+        score += 1
+    if any(c.isupper() for c in password) and any(c.islower() for c in password):
+        score += 1
+    if any(c.isdigit() for c in password):
+        score += 1
+    if any(not c.isalnum() for c in password):
+        score += 1
+
+    if score <= 1:
+        return score, "ضعيفة جدًا", "#EF4444"
+    elif score <= 2:
+        return score, "ضعيفة", "#F59E0B"
+    elif score <= 3:
+        return score, "متوسطة", "#3B82F6"
+    else:
+        return score, "قوية", "#22C55E"
+
+
 def score_badge(score: float | None) -> str:
     if score is None:
         return "غير محسوبة"
