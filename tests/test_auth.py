@@ -120,6 +120,29 @@ class BranchPermissionTests(AuthTestsBase):
         user = {"role": "viewer", "managed_branch_ids": []}
         self.assertFalse(self.auth.can_manage_branch(user, branch_id=1))
 
+    def test_auditor_can_only_view_and_edit_assigned_open_audit(self):
+        user = {"role": "auditor", "email": "a@nxn.local", "managed_branch_ids": []}
+        own = {"auditor_email": "a@nxn.local", "branch_id": 1, "status": "draft"}
+        other = {"auditor_email": "b@nxn.local", "branch_id": 1, "status": "draft"}
+        closed = {"auditor_email": "a@nxn.local", "branch_id": 1, "status": "submitted"}
+        self.assertTrue(self.auth.can_view_audit(user, own))
+        self.assertTrue(self.auth.can_edit_audit(user, own))
+        self.assertFalse(self.auth.can_view_audit(user, other))
+        self.assertFalse(self.auth.can_edit_audit(user, other))
+        self.assertFalse(self.auth.can_edit_audit(user, closed))
+
+    def test_only_branch_manager_responds_and_only_owner_approves(self):
+        branch = {"role": "branch", "managed_branch_ids": [7]}
+        manager = {"role": "manager", "managed_branch_ids": []}
+        owner = {"role": "owner", "managed_branch_ids": []}
+        auditor = {"role": "auditor", "managed_branch_ids": []}
+        self.assertTrue(self.auth.can_respond_to_corrective_action(branch, 7))
+        self.assertFalse(self.auth.can_respond_to_corrective_action(branch, 8))
+        self.assertFalse(self.auth.can_respond_to_corrective_action(manager, 7))
+        self.assertFalse(self.auth.can_respond_to_corrective_action(auditor, 7))
+        self.assertTrue(self.auth.can_approve_corrective_action(owner))
+        self.assertFalse(self.auth.can_approve_corrective_action(manager))
+
 
 if __name__ == "__main__":
     unittest.main()

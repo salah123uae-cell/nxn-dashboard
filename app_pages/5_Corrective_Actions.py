@@ -3,11 +3,16 @@ from branding import render_logo, apply_theme
 import pandas as pd
 from datetime import datetime
 
-from auth import require_login, current_user, log_action, render_logout_sidebar, can_manage_branch
+from auth import (
+    require_login, current_user, log_action, render_logout_sidebar,
+    can_manage_branch, can_view_audit, can_respond_to_corrective_action,
+    can_approve_corrective_action,
+)
 from database import get_session
 from models import CorrectiveAction, Audit
 from utils import style_status_badges, CORRECTIVE_STATUS_COLORS, PRIORITY_COLORS
 from i18n import t, get_lang
+from audit_workflow import respond_to_corrective_action, review_corrective_action
 
 lang = get_lang()
 apply_theme(direction="ltr" if lang == "en" else "rtl")
@@ -23,15 +28,7 @@ with get_session() as s:
     actions = s.query(CorrectiveAction).order_by(CorrectiveAction.created_at.desc()).all()
     audits = {a.id: a for a in s.query(Audit).all()}
 
-    if user["role"] == "auditor":
-        # المدقق يشوف فقط الإجراءات المسندة له شخصيًا
-        actions = [a for a in actions if a.owner_email == user["email"]]
-    elif user["role"] == "branch":
-        # الفرع يشوف كل إجراءات فرعه (أو فروعه) المُدارة، مو بس المسندة له شخصيًا
-        actions = [
-            a for a in actions
-            if a.audit_id in audits and can_manage_branch(user, audits[a.audit_id].branch_id)
-        ]
+    actions = [a for a in actions if a.audit_id in audits and can_view_audit(user, audits[a.audit_id])]
 
     rows = [{
         "id": a.id, t("reference_col"): audits[a.audit_id].reference if a.audit_id in audits else "—",
@@ -66,37 +63,36 @@ if not df.empty:
         action_audit = s.query(Audit).get(action.audit_id) if action.audit_id else None
         action_branch_id = action_audit.branch_id if action_audit else None
 
-    can_update = (
-        user["role"] in ("owner", "manager")
-        or user["email"] == action_owner_email
-        or (user["role"] == "branch" and action_branch_id is not None and can_manage_branch(user, action_branch_id))
-    )
+    can_respond = action_branch_id is not None and can_respond_to_corrective_action(user, action_branch_id)
+    can_approve = can_approve_corrective_action(user) and action_status == "pending_review"
 
-    if can_update:
+    if can_respond:
         # ملاحظة أداء: الحقول داخل نموذج (st.form) فلا تُعاد قراءة قاعدة البيانات
         # وإعادة رسم الصفحة مع كل حرف يُكتب بملاحظة الرد — فقط عند الضغط على "تحديث".
         with st.form(key=f"update_action_{action_id}"):
-            statuses = ["open", "in_progress", "pending_review", "closed", "rejected"]
-            new_status = st.selectbox(t("new_status_action_label"), statuses, index=statuses.index(action_status))
             response_note = st.text_area(t("response_note_label"), value=action_response_note)
             submitted = st.form_submit_button(t("update"))
 
         if submitted:
             with get_session() as s:
-                a = s.query(CorrectiveAction).get(action_id)
-                before = {"status": a.status}
-                a.status = new_status
-                a.response_note = response_note
-                a.responded_by = user["email"]
-                a.responded_at = datetime.utcnow()
-                if new_status == "closed":
-                    a.completed_at = datetime.utcnow()
-                    a.closed_by = user["email"]
-                log_action(user["email"], "update", "corrective_action", action_id, before=before, after={"status": new_status})
+                respond_to_corrective_action(s, action_id, response_note, user["email"])
+            log_action(user["email"], "respond", "corrective_action", action_id,
+                       before={"status": action_status}, after={"status": "pending_review"})
+            st.success(t("updated_msg"))
+            st.rerun()
+    elif can_approve:
+        c1, c2 = st.columns(2)
+        approve = c1.button("اعتماد وإغلاق", key=f"approve_action_{action_id}")
+        reject = c2.button("رفض وإعادته للفرع", key=f"reject_action_{action_id}")
+        if approve or reject:
+            with get_session() as s:
+                review_corrective_action(s, action_id, approve=approve, actor_email=user["email"])
+            final_status = "closed" if approve else "rejected"
+            log_action(user["email"], "approve" if approve else "reject", "corrective_action",
+                       action_id, before={"status": action_status}, after={"status": final_status})
             st.success(t("updated_msg"))
             st.rerun()
     else:
         st.info(t("no_action_update_permission"))
 else:
     st.success(t("no_actions"))
-

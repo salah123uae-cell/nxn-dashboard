@@ -135,6 +135,41 @@ def can_manage_branch(user: dict, branch_id: int) -> bool:
     return False
 
 
+def can_view_audit(user: dict, audit) -> bool:
+    """Return whether *user* may see an audit (object or mapping)."""
+    role = user.get("role")
+    branch_id = audit["branch_id"] if isinstance(audit, dict) else audit.branch_id
+    auditor_email = audit["auditor_email"] if isinstance(audit, dict) else audit.auditor_email
+    if role in ("owner", "manager", "viewer"):
+        return True
+    if role == "auditor":
+        return auditor_email == user.get("email")
+    if role == "branch":
+        return can_manage_branch(user, branch_id)
+    return False
+
+
+def can_edit_audit(user: dict, audit) -> bool:
+    """Only owners/managers or the assigned auditor may edit an open audit."""
+    status = audit["status"] if isinstance(audit, dict) else audit.status
+    if status not in ("scheduled", "draft"):
+        return False
+    if user.get("role") in ("owner", "manager"):
+        return True
+    auditor_email = audit["auditor_email"] if isinstance(audit, dict) else audit.auditor_email
+    return user.get("role") == "auditor" and auditor_email == user.get("email")
+
+
+def can_respond_to_corrective_action(user: dict, branch_id: int) -> bool:
+    """A corrective response belongs exclusively to the assigned branch manager."""
+    return user.get("role") == "branch" and can_manage_branch(user, branch_id)
+
+
+def can_approve_corrective_action(user: dict) -> bool:
+    """Final corrective-action approval is reserved for the system owner."""
+    return user.get("role") == "owner"
+
+
 def create_signup_request(first_name: str, last_name: str, email: str,
                            employee_number: str, password: str) -> tuple[bool, str]:
     """ينشئ طلب حساب جديد بانتظار موافقة الإدارة. يرجع (نجاح, رسالة)."""
@@ -314,4 +349,3 @@ def render_logout_sidebar():
         if st.button(t("logout"), key="global_logout_btn", use_container_width=True):
             logout()
             st.rerun()
-

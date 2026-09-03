@@ -13,6 +13,22 @@ jobs:
   test:
     name: تشغيل مجموعة الاختبارات الكاملة
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: nxn_test
+          POSTGRES_PASSWORD: nxn_test
+          POSTGRES_DB: nxn_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nxn_test -d nxn_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      POSTGRES_TEST_URL: postgresql+psycopg://nxn_test:nxn_test@localhost:5432/nxn_test
 
     steps:
       - name: تنزيل الكود
