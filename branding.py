@@ -266,24 +266,25 @@ def apply_theme(direction: str = "rtl"):
         [data-testid="stSidebar"] hr {{
             border-color: rgba(255,255,255,0.12) !important;
         }}
-        /* روابط التنقّل بالقائمة الجانبية — تدرّج بنفسجي-أزرق بتباين قوي وواضح
-           (نستخدم أزرق أفتح من اللون الرسمي الغامق #1E22AA لأنه يندمج بخلفية
-           القائمة الداكنة نفسها ولا يظهر بوضوح) + حدّ أخضر Lime بارز حول كل
-           عنصر كإشارة بصرية لا تُخطأ، تؤكد فعليًا وصول التحديث للمتصفح. */
+        /* روابط التنقّل بالقائمة الجانبية — حالة افتراضية هادئة (تدرّج خفيف)،
+           والصفحة النشطة فقط تاخذ التصميم القوي البارز. ملاحظة: aria-current
+           غير مدعومة بهذي النسخة من Streamlit، فنعتمد على كلاس مخصّص
+           (nxn-active-link) نضيفه فعليًا عبر جافاسكريبت بناءً على الرابط
+           الحالي — راجع app.py للسكربت المسؤول عن هذا التمييز. */
         [data-testid="stSidebar"] a,
         [data-testid="stSidebarNav"] a {{
-            background: linear-gradient(120deg, {BRAND_PURPLE} 0%, #4B4FE0 100%) !important;
-            color: #FFFFFF !important;
+            background: rgba(255,255,255,0.06) !important;
+            color: #DADCFF !important;
             border-radius: 12px !important;
             text-align: {"right" if direction == "rtl" else "left"} !important;
             display: block !important;
             padding: 12px 16px !important;
             margin: 3px 8px !important;
-            font-weight: 600 !important;
+            font-weight: 500 !important;
             font-size: 15px !important;
             transition: all 0.2s ease !important;
-            border: 2px solid {BRAND_LIME} !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
+            border: 1.5px solid rgba(255,255,255,0.1) !important;
+            box-shadow: none !important;
         }}
         [data-testid="stSidebarNav"] ul, [data-testid="stSidebarNav"] li {{
             direction: {direction};
@@ -293,17 +294,21 @@ def apply_theme(direction: str = "rtl"):
         }}
         [data-testid="stSidebar"] a:hover,
         [data-testid="stSidebarNav"] a:hover {{
-            box-shadow: 0 4px 16px rgba(68, 214, 44, 0.6) !important;
+            background: linear-gradient(120deg, {BRAND_PURPLE} 0%, #4B4FE0 100%) !important;
+            color: white !important;
+            border-color: {BRAND_LIME} !important;
+            box-shadow: 0 4px 16px rgba(68, 214, 44, 0.4) !important;
             transform: {"translateX(-4px)" if direction == "rtl" else "translateX(4px)"} !important;
-            border-color: white !important;
         }}
-        [data-testid="stSidebar"] a[aria-current="page"],
-        [data-testid="stSidebarNav"] a[aria-current="page"] {{
+        /* الصفحة الحالية — الكلاس المخصّص nxn-active-link (مضاف عبر جافاسكريبت) */
+        [data-testid="stSidebar"] a.nxn-active-link,
+        [data-testid="stSidebarNav"] a.nxn-active-link {{
             background: linear-gradient(120deg, {BRAND_LIME} 0%, #2FA81D 100%) !important;
             color: #14123A !important;
             font-weight: 700 !important;
             border-color: white !important;
             box-shadow: 0 4px 16px rgba(68, 214, 44, 0.5) !important;
+            transform: none !important;
         }}
         /* أزرار تسجيل الخروج بالشريط الجانبي تبقى بألوان الهوية الزاهية */
         [data-testid="stSidebar"] .stButton>button {{
