@@ -266,10 +266,12 @@ def apply_theme(direction: str = "rtl"):
         [data-testid="stSidebar"] hr {{
             border-color: rgba(255,255,255,0.12) !important;
         }}
-        /* روابط التنقّل بالقائمة الجانبية — بشكل بطاقات تفاعلية بدل نص عادي مسطّح */
+        /* روابط التنقّل بالقائمة الجانبية — مزيج مباشر وواضح للثلاث ألوان الرسمية
+           (أخضر + بنفسجي + أزرق) بشكل ثابت، مو محتاج حركة أو تحويم عشان تظهر */
         [data-testid="stSidebar"] a,
         [data-testid="stSidebarNav"] a {{
-            color: #DADCFF !important;
+            background: linear-gradient(90deg, {BRAND_LIME}26 0%, {BRAND_PURPLE}26 50%, {BRAND_BLUE}26 100%) !important;
+            color: #EDEBFF !important;
             border-radius: 12px !important;
             text-align: {"right" if direction == "rtl" else "left"} !important;
             display: block !important;
@@ -288,28 +290,24 @@ def apply_theme(direction: str = "rtl"):
         }}
         [data-testid="stSidebar"] a:hover,
         [data-testid="stSidebarNav"] a:hover {{
-            background: linear-gradient(120deg, {BRAND_PURPLE}33 0%, {BRAND_BLUE}33 100%) !important;
+            background: linear-gradient(90deg, {BRAND_LIME}55 0%, {BRAND_PURPLE}55 50%, {BRAND_BLUE}55 100%) !important;
             color: #FFFFFF !important;
-            border-{"right" if direction == "rtl" else "left"}: 3px solid {BRAND_LIME} !important;
             transform: {"translateX(-4px)" if direction == "rtl" else "translateX(4px)"} !important;
             box-shadow: 0 4px 14px rgba(150, 60, 189, 0.35) !important;
         }}
         [data-testid="stSidebar"] a[aria-current="page"],
         [data-testid="stSidebarNav"] a[aria-current="page"] {{
-            background: linear-gradient(120deg, {BRAND_LIME} 0%, {BRAND_PURPLE} 55%, {BRAND_BLUE} 100%) !important;
-            background-size: 200% 100% !important;
-            background-position: 0% 0% !important;
+            background: linear-gradient(90deg, {BRAND_LIME} 0%, {BRAND_PURPLE} 50%, {BRAND_BLUE} 100%) !important;
             color: white !important;
             font-weight: 700 !important;
-            box-shadow: 0 4px 14px rgba(68, 214, 44, 0.35) !important;
-            border-{"right" if direction == "rtl" else "left"}: 3px solid white !important;
-            transition: background-position 0.4s ease !important;
+            box-shadow: 0 4px 16px rgba(30, 34, 170, 0.4) !important;
+            border-color: transparent !important;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.35) !important;
         }}
         [data-testid="stSidebar"] a[aria-current="page"]:hover,
         [data-testid="stSidebarNav"] a[aria-current="page"]:hover {{
-            background-position: 100% 0% !important;
             transform: none !important;
-            box-shadow: 0 4px 18px rgba(30, 34, 170, 0.45) !important;
+            box-shadow: 0 6px 20px rgba(30, 34, 170, 0.55) !important;
         }}
         /* أزرار تسجيل الخروج بالشريط الجانبي تبقى بألوان الهوية الزاهية */
         [data-testid="stSidebar"] .stButton>button {{
