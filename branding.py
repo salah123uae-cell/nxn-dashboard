@@ -288,23 +288,28 @@ def apply_theme(direction: str = "rtl"):
         }}
         [data-testid="stSidebar"] a:hover,
         [data-testid="stSidebarNav"] a:hover {{
-            background: rgba(255,255,255,0.10) !important;
+            background: linear-gradient(120deg, {BRAND_PURPLE}33 0%, {BRAND_BLUE}33 100%) !important;
             color: #FFFFFF !important;
-            border-color: rgba(255,255,255,0.15) !important;
+            border-{"right" if direction == "rtl" else "left"}: 3px solid {BRAND_LIME} !important;
             transform: {"translateX(-4px)" if direction == "rtl" else "translateX(4px)"} !important;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.25) !important;
+            box-shadow: 0 4px 14px rgba(150, 60, 189, 0.35) !important;
         }}
         [data-testid="stSidebar"] a[aria-current="page"],
         [data-testid="stSidebarNav"] a[aria-current="page"] {{
-            background: linear-gradient(135deg, {BRAND_LIME} 0%, #2FA81D 100%) !important;
-            color: #14123A !important;
+            background: linear-gradient(120deg, {BRAND_LIME} 0%, {BRAND_PURPLE} 55%, {BRAND_BLUE} 100%) !important;
+            background-size: 200% 100% !important;
+            background-position: 0% 0% !important;
+            color: white !important;
             font-weight: 700 !important;
             box-shadow: 0 4px 14px rgba(68, 214, 44, 0.35) !important;
-            border-color: transparent !important;
+            border-{"right" if direction == "rtl" else "left"}: 3px solid white !important;
+            transition: background-position 0.4s ease !important;
         }}
         [data-testid="stSidebar"] a[aria-current="page"]:hover,
         [data-testid="stSidebarNav"] a[aria-current="page"]:hover {{
+            background-position: 100% 0% !important;
             transform: none !important;
+            box-shadow: 0 4px 18px rgba(30, 34, 170, 0.45) !important;
         }}
         /* أزرار تسجيل الخروج بالشريط الجانبي تبقى بألوان الهوية الزاهية */
         [data-testid="stSidebar"] .stButton>button {{
