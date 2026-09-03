@@ -48,9 +48,32 @@ if _is_logged_in:
                     }
                 } catch (e) {}
             }
+            // تمييز الصفحة الحالية بالقائمة الجانبية: هذا الإصدار من Streamlit
+            // لا يستخدم aria-current="page"، فنقارن يدويًا رابط كل عنصر
+            // بمسار الصفحة الحالية ونضيف كلاس مخصّص (nxn-active-link) — راجع
+            // branding.py حيث يُعرَّف شكل هذا الكلاس.
+            function markActiveLink() {
+                try {
+                    const doc = window.parent.document;
+                    const currentPath = window.parent.location.pathname;
+                    const links = doc.querySelectorAll('[data-testid="stSidebarNav"] a');
+                    links.forEach(function(link) {
+                        let linkPath;
+                        try { linkPath = new URL(link.href).pathname; } catch (e) { linkPath = null; }
+                        if (linkPath !== null && linkPath === currentPath) {
+                            link.classList.add('nxn-active-link');
+                        } else {
+                            link.classList.remove('nxn-active-link');
+                        }
+                    });
+                } catch (e) {}
+            }
             setTimeout(openSidebarIfCollapsed, 150);
             setTimeout(openSidebarIfCollapsed, 500);
             setTimeout(openSidebarIfCollapsed, 1000);
+            setTimeout(markActiveLink, 150);
+            setTimeout(markActiveLink, 500);
+            setTimeout(markActiveLink, 1000);
         })();
         </script>
         """,
