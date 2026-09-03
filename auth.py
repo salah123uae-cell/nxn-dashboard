@@ -78,6 +78,8 @@ def login(email: str, password: str) -> tuple[bool, str]:
                     cred.failed_attempts = 0
                     log_action(email, "lockout", "user", entity_id=email)
                     return False, f"تم قفل الحساب مؤقتًا لمدة {LOCKOUT_DURATION_MINUTES} دقيقة بسبب محاولات دخول فاشلة متكررة."
+                remaining_attempts = LOCKOUT_THRESHOLD - cred.failed_attempts
+                return False, f"كلمة المرور غير صحيحة. محاولات متبقية قبل القفل المؤقت: {remaining_attempts}"
             return False, "كلمة المرور غير صحيحة"
 
         cred.failed_attempts = 0
@@ -278,6 +280,7 @@ def render_logout_sidebar():
     """يعرض اسم المستخدم الحالي، تغيير كلمة المرور، وزر تسجيل الخروج بالشريط
     الجانبي — يظهر بكل صفحة."""
     from i18n import t  # استيراد محلي لتفادي أي حلقة استيراد دائرية
+    from utils import password_strength
 
     user = current_user()
     if not user:
@@ -298,6 +301,8 @@ def render_logout_sidebar():
                         st.error(t("fill_required"))
                     elif new_pw1 != new_pw2:
                         st.error(t("password_mismatch"))
+                    elif password_strength(new_pw1)[0] <= 1:
+                        st.error(t("weak_password_error"))
                     else:
                         ok, msg_key = change_own_password(user["id"], current_pw, new_pw1)
                         if ok:
