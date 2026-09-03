@@ -1,0 +1,40 @@
+name: اختبارات آلية للنظام
+
+# يشتغل تلقائيًا مع كل رفع كود (push) أو طلب دمج (pull request) لفرع main،
+# ويمسك أي خلل بالكود قبل ما يوصل للموقع المباشر — بدون أي إعداد يدوي إضافي.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    name: تشغيل مجموعة الاختبارات الكاملة
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: تنزيل الكود
+        uses: actions/checkout@v4
+
+      - name: تجهيز بايثون
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: تثبيت المتطلبات (إنتاج + اختبار)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: تشغيل كل الاختبارات
+        run: |
+          python -m pytest tests/ -v --tb=short
+
+      - name: ملخص النتيجة
+        if: always()
+        run: |
+          echo "### نتيجة الاختبارات" >> $GITHUB_STEP_SUMMARY
+          echo "راجع السجل أعلاه لتفاصيل كل اختبار." >> $GITHUB_STEP_SUMMARY
