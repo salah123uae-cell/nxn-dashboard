@@ -1,0 +1,4 @@
+# متطلبات إضافية للتطوير والاختبار الآلي فقط (مو للنشر بالإنتاج).
+# يُستخدم هذا الملف من طرف GitHub Actions (راجع .github/workflows/tests.yml)
+-r requirements.txt
+pytest==8.3.4
