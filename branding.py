@@ -266,21 +266,24 @@ def apply_theme(direction: str = "rtl"):
         [data-testid="stSidebar"] hr {{
             border-color: rgba(255,255,255,0.12) !important;
         }}
-        /* روابط التنقّل بالقائمة الجانبية — نفس تدرّج البانر الرئيسي بالضبط
-           (بنفسجي → أزرق قطريًا) كخلفية لكل عنصر، بدل النص العادي المسطّح */
+        /* روابط التنقّل بالقائمة الجانبية — تدرّج بنفسجي-أزرق بتباين قوي وواضح
+           (نستخدم أزرق أفتح من اللون الرسمي الغامق #1E22AA لأنه يندمج بخلفية
+           القائمة الداكنة نفسها ولا يظهر بوضوح) + حدّ أخضر Lime بارز حول كل
+           عنصر كإشارة بصرية لا تُخطأ، تؤكد فعليًا وصول التحديث للمتصفح. */
         [data-testid="stSidebar"] a,
         [data-testid="stSidebarNav"] a {{
-            background: linear-gradient(120deg, {BRAND_PURPLE} 0%, {BRAND_BLUE} 100%) !important;
+            background: linear-gradient(120deg, {BRAND_PURPLE} 0%, #4B4FE0 100%) !important;
             color: #FFFFFF !important;
             border-radius: 12px !important;
             text-align: {"right" if direction == "rtl" else "left"} !important;
             display: block !important;
             padding: 12px 16px !important;
             margin: 3px 8px !important;
-            font-weight: 500 !important;
+            font-weight: 600 !important;
             font-size: 15px !important;
             transition: all 0.2s ease !important;
-            border: 1px solid transparent !important;
+            border: 2px solid {BRAND_LIME} !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
         }}
         [data-testid="stSidebarNav"] ul, [data-testid="stSidebarNav"] li {{
             direction: {direction};
@@ -290,20 +293,17 @@ def apply_theme(direction: str = "rtl"):
         }}
         [data-testid="stSidebar"] a:hover,
         [data-testid="stSidebarNav"] a:hover {{
-            box-shadow: 0 4px 14px rgba(150, 60, 189, 0.45) !important;
+            box-shadow: 0 4px 16px rgba(68, 214, 44, 0.6) !important;
             transform: {"translateX(-4px)" if direction == "rtl" else "translateX(4px)"} !important;
-            border-color: {BRAND_LIME} !important;
+            border-color: white !important;
         }}
         [data-testid="stSidebar"] a[aria-current="page"],
         [data-testid="stSidebarNav"] a[aria-current="page"] {{
+            background: linear-gradient(120deg, {BRAND_LIME} 0%, #2FA81D 100%) !important;
+            color: #14123A !important;
             font-weight: 700 !important;
-            box-shadow: 0 4px 16px rgba(68, 214, 44, 0.4) !important;
-            border-{"right" if direction == "rtl" else "left"}: 3px solid {BRAND_LIME} !important;
-        }}
-        [data-testid="stSidebar"] a[aria-current="page"]:hover,
-        [data-testid="stSidebarNav"] a[aria-current="page"]:hover {{
-            transform: none !important;
-            box-shadow: 0 6px 20px rgba(68, 214, 44, 0.55) !important;
+            border-color: white !important;
+            box-shadow: 0 4px 16px rgba(68, 214, 44, 0.5) !important;
         }}
         /* أزرار تسجيل الخروج بالشريط الجانبي تبقى بألوان الهوية الزاهية */
         [data-testid="stSidebar"] .stButton>button {{
