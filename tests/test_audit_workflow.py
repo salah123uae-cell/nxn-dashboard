@@ -1,114 +1,83 @@
-"""
-اختبارات آلية لحساب نتيجة التدقيق وإنشاء الإجراءات التصحيحية التلقائية.
-"""
+"""Tests the real transactional audit and corrective-action workflow."""
 import os
 import tempfile
 import unittest
-import datetime as dt
 
 
 class AuditWorkflowTests(unittest.TestCase):
     def setUp(self):
-        self._tmp_db = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
-        self._tmp_db.close()
-        os.environ["DATABASE_URL"] = f"sqlite:///{self._tmp_db.name}"
-
-        import importlib
-        import database
+        self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()
+        os.environ["DATABASE_URL"] = f"sqlite:///{self.tmp.name}"
+        import importlib, database, models, audit_workflow
         importlib.reload(database)
-        self.database = database
-        self.database.init_db()
-
-        import models
-        self.models = models
-        import utils
-        self.utils = utils
+        importlib.reload(audit_workflow)
+        self.db, self.m, self.workflow = database, models, audit_workflow
+        self.db.init_db()
+        with self.db.get_session() as s:
+            section = self.m.AuditSection(code="S1", name_ar="قسم", name_en="Section", weight=100, sort_order=1)
+            s.add(section); s.flush()
+            s.add_all([
+                self.m.AuditQuestion(section_id=section.id, code="Q1", question_ar="س1", question_en="Q1", weight=60, checklist_version="QV1", sort_order=1),
+                self.m.AuditQuestion(section_id=section.id, code="Q2", question_ar="س2", question_en="Q2", weight=40, checklist_version="QV1", sort_order=2),
+            ])
+            branch = self.m.Branch(code="BR1", name_ar="فرع", name_en="Branch", region="R", city="C", status="active", manager_email="branch@nxn.local")
+            s.add(branch); s.flush()
+            audit = self.m.Audit(reference="AUD1", branch_id=branch.id, auditor_email="auditor@nxn.local", status="scheduled", checklist_version="QV1")
+            s.add(audit); s.flush()
+            self.audit_id = audit.id
+            self.question_ids = [q.id for q in s.query(self.m.AuditQuestion).order_by(self.m.AuditQuestion.id)]
 
     def tearDown(self):
-        try:
-            os.unlink(self._tmp_db.name)
-        except OSError:
-            pass
+        self.db.engine.dispose()
+        os.unlink(self.tmp.name)
         os.environ.pop("DATABASE_URL", None)
 
-    def test_score_calculation_excludes_not_applicable(self):
-        """السؤال not_applicable يجب أن يُستبعد كليًا من مجموع الوزن القابل للتطبيق."""
-        with self.database.get_session() as s:
-            q1 = self.models.AuditQuestion(section_id=1, code="Q1", question_ar="س1", question_en="Q1",
-                                            weight=60, checklist_version="QV1", sort_order=1)
-            q2 = self.models.AuditQuestion(section_id=1, code="Q2", question_ar="س2", question_en="Q2",
-                                            weight=40, checklist_version="QV1", sort_order=2)
-            q3 = self.models.AuditQuestion(section_id=1, code="Q3", question_ar="س3", question_en="Q3",
-                                            weight=100, checklist_version="QV1", sort_order=3)
-            s.add_all([q1, q2, q3])
-            s.flush()
-            qmap = {q1.id: q1, q2.id: q2, q3.id: q3}
-            answers = [
-                {"question_id": q1.id, "answer": "compliant"},
-                {"question_id": q2.id, "answer": "non_compliant"},
-                {"question_id": q3.id, "answer": "not_applicable"},
-            ]
-            # نحسب النتيجة ونحن لسا داخل الجلسة، لتفادي DetachedInstanceError
-            # عند وصول calculate_audit_score لخاصية weight بعد إغلاق الجلسة.
-            score = self.utils.calculate_audit_score(answers, qmap)
-        # المتوقع: 60 / (60+40) * 100 = 60.0 (Q3 مستبعد تمامًا من المقام والبسط)
+    def _answers(self, first="compliant", second="non_compliant"):
+        return [{"question_id": self.question_ids[0], "answer": first},
+                {"question_id": self.question_ids[1], "answer": second}]
+
+    def test_submit_persists_score_and_assigns_action_to_branch_manager(self):
+        with self.db.get_session() as s:
+            score = self.workflow.submit_audit(s, self.audit_id, self._answers(), "auditor@nxn.local")
         self.assertEqual(score, 60.0)
+        with self.db.get_session() as s:
+            audit = s.get(self.m.Audit, self.audit_id)
+            actions = s.query(self.m.CorrectiveAction).filter_by(audit_id=self.audit_id).all()
+            self.assertEqual(audit.score, 60.0)
+            self.assertEqual(len(actions), 1)
+            self.assertEqual(actions[0].owner_email, "branch@nxn.local")
 
-    def test_score_is_zero_when_all_non_compliant(self):
-        with self.database.get_session() as s:
-            q1 = self.models.AuditQuestion(section_id=1, code="Q1", question_ar="س1", question_en="Q1",
-                                            weight=100, checklist_version="QV1", sort_order=1)
-            s.add(q1)
-            s.flush()
-            qmap = {q1.id: q1}
-            answers = [{"question_id": q1.id, "answer": "non_compliant"}]
-            score = self.utils.calculate_audit_score(answers, qmap)
-        self.assertEqual(score, 0.0)
+    def test_not_applicable_is_excluded_and_all_compliant_is_100(self):
+        with self.db.get_session() as s:
+            score = self.workflow.submit_audit(s, self.audit_id, self._answers("compliant", "not_applicable"), "auditor@nxn.local")
+        self.assertEqual(score, 100.0)
 
-    def test_score_is_zero_when_no_applicable_questions(self):
-        """لو كل الأسئلة not_applicable، المقام صفر — يجب ألا يحدث انقسام على صفر."""
-        with self.database.get_session() as s:
-            q1 = self.models.AuditQuestion(section_id=1, code="Q1", question_ar="س1", question_en="Q1",
-                                            weight=100, checklist_version="QV1", sort_order=1)
-            s.add(q1)
-            s.flush()
-            qmap = {q1.id: q1}
-            answers = [{"question_id": q1.id, "answer": "not_applicable"}]
-            score = self.utils.calculate_audit_score(answers, qmap)
-        self.assertEqual(score, 0.0)
+    def test_incomplete_duplicate_and_invalid_answers_are_rejected(self):
+        cases = [
+            [self._answers()[0]],
+            [self._answers()[0], self._answers()[0]],
+            [{"question_id": self.question_ids[0], "answer": "yes"}, self._answers()[1]],
+        ]
+        for answers in cases:
+            with self.subTest(answers=answers), self.assertRaises(ValueError), self.db.get_session() as s:
+                self.workflow.submit_audit(s, self.audit_id, answers, "auditor@nxn.local")
 
-    def test_corrective_action_created_for_non_compliant_answer(self):
-        """محاكاة تصغيرة لمنطق إنشاء إجراء تصحيحي تلقائي (نفس منطق 4_Audits.py)."""
-        with self.database.get_session() as s:
-            branch = self.models.Branch(code="BR-1", name_ar="ف1", name_en="B1",
-                                         region="R", city="C", status="active")
-            s.add(branch)
-            s.flush()
-            audit = self.models.Audit(reference="AUD-1", branch_id=branch.id,
-                                       auditor_email="a@nxn.local", status="submitted",
-                                       checklist_version="QV1")
-            s.add(audit)
-            s.flush()
-            audit_id = audit.id
-            q1 = self.models.AuditQuestion(section_id=1, code="Q1", question_ar="سؤال حرج", question_en="Critical",
-                                            weight=100, checklist_version="QV1", sort_order=1)
-            s.add(q1)
-            s.flush()
-            ans = self.models.AuditAnswer(audit_id=audit_id, question_id=q1.id,
-                                           answer="non_compliant", answered_by="a@nxn.local",
-                                           answered_at=dt.datetime.utcnow())
-            s.add(ans)
-            s.flush()
-            if ans.answer == "non_compliant":
-                s.add(self.models.CorrectiveAction(
-                    audit_id=audit_id, answer_id=ans.id, title=f"معالجة: {q1.code}",
-                    description=q1.question_ar, owner_email="a@nxn.local",
-                    due_at=dt.datetime.utcnow(), priority="high", status="open",
-                ))
-
-        with self.database.get_session() as s:
-            count = s.query(self.models.CorrectiveAction).filter_by(audit_id=audit_id).count()
-        self.assertEqual(count, 1)
+    def test_branch_response_requires_note_then_owner_can_approve(self):
+        with self.db.get_session() as s:
+            self.workflow.submit_audit(s, self.audit_id, self._answers(), "auditor@nxn.local")
+            action_id = s.query(self.m.CorrectiveAction).filter_by(audit_id=self.audit_id).one().id
+        with self.assertRaises(ValueError), self.db.get_session() as s:
+            self.workflow.respond_to_corrective_action(s, action_id, " ", "branch@nxn.local")
+        with self.db.get_session() as s:
+            self.workflow.respond_to_corrective_action(s, action_id, "تم التصحيح وإرفاق الدليل", "branch@nxn.local")
+        with self.db.get_session() as s:
+            self.assertEqual(s.get(self.m.CorrectiveAction, action_id).status, "pending_review")
+            self.workflow.review_corrective_action(s, action_id, True, "owner@nxn.local")
+        with self.db.get_session() as s:
+            action = s.get(self.m.CorrectiveAction, action_id)
+            self.assertEqual(action.status, "closed")
+            self.assertEqual(action.closed_by, "owner@nxn.local")
 
 
 if __name__ == "__main__":
