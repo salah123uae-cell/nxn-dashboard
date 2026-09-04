@@ -103,21 +103,27 @@ def init_db():
 
 
 def _migrate_add_missing_columns():
-    """ترحيل بسيط وآمن: يضيف أعمدة جديدة لجدول users القديم إن لم تكن موجودة
+    """ترحيل بسيط وآمن: يضيف أعمدة جديدة لجداول قديمة إن لم تكن موجودة
     (بدون حذف أو تعديل أي بيانات حالية). يعمل مع SQLite و PostgreSQL."""
     from sqlalchemy import inspect, text
 
     inspector = inspect(engine)
-    if "users" not in inspector.get_table_names():
-        return
-    existing_cols = {c["name"] for c in inspector.get_columns("users")}
-    if "employee_number" not in existing_cols:
-        try:
-            with engine.connect() as conn:
-                conn.execute(text("ALTER TABLE users ADD COLUMN employee_number VARCHAR"))
-                conn.commit()
-        except Exception:
-            pass
+    table_columns_to_add = {
+        "users": [("employee_number", "VARCHAR")],
+        "corrective_actions": [("overdue_notified_at", "TIMESTAMP")],
+    }
+    for table_name, columns in table_columns_to_add.items():
+        if table_name not in inspector.get_table_names():
+            continue
+        existing_cols = {c["name"] for c in inspector.get_columns(table_name)}
+        for col_name, col_type in columns:
+            if col_name not in existing_cols:
+                try:
+                    with engine.connect() as conn:
+                        conn.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}"))
+                        conn.commit()
+                except Exception:
+                    pass
 
 
 @contextmanager
