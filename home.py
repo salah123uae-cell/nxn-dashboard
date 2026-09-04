@@ -1,4 +1,5 @@
 import streamlit as st
+# نسخة: إعادة نشر إجبارية للتأكد من تحديث الخادم — 2026-09-04
 from auth import (
     login, current_user, ROLE_LABELS_AR, hash_password, render_logout_sidebar,
     create_signup_request, create_password_reset_request,
