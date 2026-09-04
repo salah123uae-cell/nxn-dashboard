@@ -2,7 +2,10 @@ import streamlit as st
 from branding import render_logo, apply_theme, render_card, BRAND_LIME, BRAND_BLUE, BRAND_PURPLE
 
 from auth import require_role, render_logout_sidebar
-from automation import check_overdue_corrective_actions, get_automation_stats
+from automation import (
+    automation_enabled, check_overdue_corrective_actions,
+    get_automation_stats, preview_overdue_corrective_actions,
+)
 from i18n import t, get_lang
 
 lang = get_lang()
@@ -45,9 +48,25 @@ st.divider()
 st.markdown(f"##### {t('automation_overdue_section_title')}")
 st.info(t("automation_overdue_desc"))
 
+_enabled = automation_enabled()
+_preview = preview_overdue_corrective_actions()
+if _enabled:
+    st.success("الأتمتة مفعّلة" if lang == "ar" else "Automation is enabled")
+else:
+    st.warning(
+        "وضع المعاينة الآمن: لن تُرسل تنبيهات حتى ضبط OVERDUE_AUTOMATION_ENABLED=true."
+        if lang == "ar" else
+        "Safe preview mode: no alerts are sent until OVERDUE_AUTOMATION_ENABLED=true."
+    )
+st.caption(
+    (f"المعاينة: {_preview['actions']} إجراء، {_preview['recipients']} مستلم محتمل"
+     if lang == "ar" else
+     f"Preview: {_preview['actions']} actions, {_preview['recipients']} potential recipients")
+)
+
 # يشتغل الفحص تلقائيًا مرة واحدة بكل جلسة عند فتح الصفحة (بدون إزعاج بإعادة
 # الفحص مع كل rerun ناتج عن تفاعل آخر بنفس الصفحة).
-if "automation_auto_ran" not in st.session_state:
+if _enabled and "automation_auto_ran" not in st.session_state:
     _auto_notified = check_overdue_corrective_actions()
     st.session_state["automation_auto_ran"] = True
     if _auto_notified:
@@ -58,7 +77,7 @@ sc1, sc2 = st.columns(2)
 sc1.metric(t("automation_currently_overdue"), _stats["currently_overdue"])
 sc2.metric(t("automation_total_notified"), _stats["total_ever_notified"])
 
-if st.button(t("automation_run_now_btn"), key="automation_run_now"):
+if st.button(t("automation_run_now_btn"), key="automation_run_now", disabled=not _enabled):
     _notified = check_overdue_corrective_actions()
     if _notified:
         st.success(t("automation_run_result", n=_notified))

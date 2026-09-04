@@ -2,6 +2,7 @@
 import os
 import tempfile
 import unittest
+from datetime import datetime, timedelta
 
 
 class AuditWorkflowTests(unittest.TestCase):
@@ -47,6 +48,9 @@ class AuditWorkflowTests(unittest.TestCase):
             self.assertEqual(audit.score, 60.0)
             self.assertEqual(len(actions), 1)
             self.assertEqual(actions[0].owner_email, "branch@nxn.local")
+            remaining = actions[0].due_at - datetime.utcnow()
+            self.assertGreater(remaining, timedelta(days=6, hours=23))
+            self.assertLessEqual(remaining, timedelta(days=7))
 
     def test_not_applicable_is_excluded_and_all_compliant_is_100(self):
         with self.db.get_session() as s:

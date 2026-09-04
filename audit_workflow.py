@@ -1,6 +1,6 @@
 """Transactional audit submission and corrective-action workflow."""
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from models import Audit, AuditAnswer, AuditQuestion, Branch, CorrectiveAction, User
 from utils import calculate_audit_score
@@ -75,7 +75,7 @@ def submit_audit(session, audit_id: int, answers: list[dict], actor_email: str) 
             title=f"معالجة عدم توافق: {question.code}",
             description=question.question_ar,
             owner_email=manager_email,
-            due_at=datetime.utcnow(),
+            due_at=datetime.utcnow() + timedelta(days=7),
             priority="high",
             status="open",
         ))
