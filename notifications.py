@@ -67,7 +67,10 @@ def render_notification_bell(home_page=None):
     بحركة خفيفة لما فيه إشعارات غير مقروءة، لجذب الانتباه بدون إزعاج.
     home_page: كائن st.Page الفعلي (وليس نص المسار) — مطلوب هنا تحديدًا لأن
     النظام يبني التنقّل يدويًا عبر st.navigation()+st.Page()، و st.switch_page()
-    لا يتعرّف بشكل موثوق على مسار نصي بهذا النمط، فنمرّر الكائن نفسه بدلًا من ذلك."""
+    لا يتعرّف بشكل موثوق على مسار نصي بهذا النمط، فنمرّر الكائن نفسه بدلًا من ذلك.
+    ملاحظة تقنية: نستخدم st.container(key=...) بدل أسلوب "علامة + شقيق مجاور"
+    بالـ CSS، لأن الأخير هشّ ويعتمد على افتراض دقيق لبنية DOM الداخلية
+    (قد يفشل بصمت لو أضافت Streamlit طبقة تغليف إضافية حول st.markdown)."""
     import streamlit as st
     from auth import current_user
 
@@ -92,10 +95,10 @@ def render_notification_bell(home_page=None):
             0%, 100% {{ box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.55); }}
             70% {{ box-shadow: 0 0 0 8px rgba(185, 28, 28, 0); }}
         }}
-        div.nxn-bell-marker + div[data-testid="stButton"] {{
+        .st-key-nxn_bell_container {{
             display: flex; justify-content: center;
         }}
-        div.nxn-bell-marker + div[data-testid="stButton"] button {{
+        .st-key-nxn_bell_container button {{
             position: relative;
             background: white !important;
             border: 2px solid {bell_color} !important;
@@ -106,10 +109,10 @@ def render_notification_bell(home_page=None):
             box-shadow: 0 2px 8px rgba(30,34,170,0.12) !important;
             transition: all 0.2s ease !important;
         }}
-        div.nxn-bell-marker + div[data-testid="stButton"] button p {{
+        .st-key-nxn_bell_container button p {{
             font-size: 0 !important;
         }}
-        div.nxn-bell-marker + div[data-testid="stButton"] button::before {{
+        .st-key-nxn_bell_container button::before {{
             content: "";
             position: absolute; inset: 0; margin: auto;
             width: 18px; height: 18px;
@@ -120,11 +123,11 @@ def render_notification_bell(home_page=None):
             -webkit-mask-position: center; mask-position: center;
             animation: {"nxn-bell-pulse 2s ease-in-out infinite" if has_unread else "none"};
         }}
-        div.nxn-bell-marker + div[data-testid="stButton"] button:hover {{
+        .st-key-nxn_bell_container button:hover {{
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba(30,34,170,0.2) !important;
         }}
-        div.nxn-bell-marker + div[data-testid="stButton"] button:after {{
+        .st-key-nxn_bell_container button:after {{
             content: "{count_display if has_unread else ''}";
             position: absolute; top: -6px; right: -6px;
             background: {badge_color}; color: white;
@@ -135,11 +138,15 @@ def render_notification_bell(home_page=None):
             animation: {"nxn-badge-pulse 2s ease-in-out infinite" if has_unread else "none"};
         }}
         </style>
-        <div class="nxn-bell-marker"></div>
         """,
         unsafe_allow_html=True,
     )
-    if st.button(" ", key="nxn_notif_bell_btn", help="الإشعارات" if unread else "لا توجد إشعارات جديدة"):
+    with st.container(key="nxn_bell_container"):
+        clicked = st.button(
+            " ", key="nxn_notif_bell_btn",
+            help="الإشعارات" if unread else "لا توجد إشعارات جديدة",
+        )
+    if clicked:
         if home_page is not None:
             st.switch_page(home_page)
         else:
