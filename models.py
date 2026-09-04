@@ -202,6 +202,7 @@ class CorrectiveAction(Base):
     responded_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
     closed_by = Column(String, nullable=True)
+    overdue_notified_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, nullable=False, default=now)
     updated_at = Column(DateTime, nullable=False, default=now, onupdate=now)
 
@@ -290,3 +291,4 @@ class PasswordResetRequest(Base):
     created_at = Column(DateTime, nullable=False, default=now)
 
     __table_args__ = (Index("password_reset_requests_status_idx", "status"),)
+
