@@ -41,6 +41,14 @@ AUDIT_ACTION_COLORS = {
 }
 
 
+NOTIFICATION_TYPE_COLORS = {
+    "audit_assigned": "#1D4ED8",
+    "corrective_action_created": "#B45309",
+    "signup_approved": "#15803D",
+    "reset_approved": "#15803D",
+}
+
+
 def generate_reference() -> str:
     """يولّد رقمًا مرجعيًا فريدًا للتدقيق، مثل AUD-20260818-XJ29"""
     date_part = datetime.utcnow().strftime("%Y%m%d")
