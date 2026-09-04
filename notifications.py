@@ -92,16 +92,21 @@ def render_notification_bell(home_page=None):
             70% {{ box-shadow: 0 4px 14px rgba(68, 214, 44, 0.28), 0 0 0 7px rgba(68, 214, 44, 0); }}
         }}
         .st-key-nxn_bell_container {{
-            display: flex; justify-content: center;
+            display: flex; justify-content: center; align-items: center;
+            margin: 0 !important; padding: 0 !important;
+        }}
+        .st-key-nxn_bell_container > div {{
+            margin: 0 !important; padding: 0 !important;
         }}
         .st-key-nxn_bell_container button {{
             background: linear-gradient(135deg, {BRAND_LIME} 0%, #2FA81D 100%) !important;
             color: white !important;
             border: none !important;
             border-radius: 50% !important;
-            width: 44px !important; height: 44px !important;
-            min-width: 44px !important;
+            width: 40px !important; height: 40px !important;
+            min-width: 40px !important;
             padding: 0 !important;
+            margin: 0 !important;
             box-shadow: 0 4px 14px rgba(68, 214, 44, 0.28) !important;
             transition: all 0.2s ease !important;
             animation: {"nxn-badge-pulse 2s ease-in-out infinite" if has_unread else "none"};
