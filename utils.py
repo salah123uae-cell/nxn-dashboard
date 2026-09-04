@@ -16,24 +16,28 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.styles import getSampleStyleSheet
 
 # ---------- ألوان موحّدة لتلوين خلايا الحالة/الأولوية بالجداول (بدون أيقونات) ----------
+# ملاحظة إمكانية الوصول: كل الألوان أدناه مُختارة عمدًا (أغمق من الدرجات الزاهية
+# المعتادة) لتحقيق نسبة تباين 4.5:1 على الأقل مع النص الأبيض فوقها، حسب معيار
+# WCAG AA — بحيث يقدر يقرأها مستخدم ضعيف البصر أو يعاني من نوع من عمى الألوان
+# دون الاعتماد فقط على درجة اللون نفسها.
 CORRECTIVE_STATUS_COLORS = {
-    "open": "#EF4444", "in_progress": "#F59E0B", "pending_review": "#3B82F6",
-    "closed": "#22C55E", "rejected": "#6B7280",
+    "open": "#B91C1C", "in_progress": "#B45309", "pending_review": "#1D4ED8",
+    "closed": "#15803D", "rejected": "#4B5563",
 }
-PRIORITY_COLORS = {"high": "#EF4444", "medium": "#F59E0B", "low": "#22C55E"}
+PRIORITY_COLORS = {"high": "#B91C1C", "medium": "#B45309", "low": "#15803D"}
 AUDIT_STATUS_COLORS = {
-    "scheduled": "#6B7280", "draft": "#F59E0B", "submitted": "#3B82F6",
-    "reviewed": "#8B5CF6", "closed": "#22C55E", "cancelled": "#6B7280",
+    "scheduled": "#4B5563", "draft": "#B45309", "submitted": "#1D4ED8",
+    "reviewed": "#6D28D9", "closed": "#15803D", "cancelled": "#4B5563",
 }
-BRANCH_STATUS_COLORS = {"active": "#22C55E", "inactive": "#6B7280", "suspended": "#EF4444"}
-ACTIVE_STATUS_COLORS = {True: "#22C55E", False: "#EF4444"}
-CHECKLIST_VERSION_STATUS_COLORS = {"draft": "#F59E0B", "active": "#22C55E", "retired": "#6B7280"}
+BRANCH_STATUS_COLORS = {"active": "#15803D", "inactive": "#4B5563", "suspended": "#B91C1C"}
+ACTIVE_STATUS_COLORS = {True: "#15803D", False: "#B91C1C"}
+CHECKLIST_VERSION_STATUS_COLORS = {"draft": "#B45309", "active": "#15803D", "retired": "#4B5563"}
 AUDIT_ACTION_COLORS = {
-    "create": "#3B82F6", "submit": "#3B82F6", "upload_evidence": "#3B82F6", "import": "#3B82F6",
-    "approve": "#22C55E", "close": "#22C55E",
-    "update": "#F59E0B", "change_password": "#F59E0B",
-    "reject": "#EF4444", "lockout": "#EF4444",
-    "login": "#6B7280", "logout": "#6B7280", "export": "#6B7280",
+    "create": "#1D4ED8", "submit": "#1D4ED8", "upload_evidence": "#1D4ED8", "import": "#1D4ED8",
+    "approve": "#15803D", "close": "#15803D",
+    "update": "#B45309", "change_password": "#B45309",
+    "reject": "#B91C1C", "lockout": "#B91C1C",
+    "login": "#4B5563", "logout": "#4B5563", "export": "#4B5563",
 }
 
 
@@ -88,13 +92,13 @@ def password_strength(password: str) -> tuple[int, str, str]:
         score += 1
 
     if score <= 1:
-        return score, "ضعيفة جدًا", "#EF4444"
+        return score, "ضعيفة جدًا", "#B91C1C"
     elif score <= 2:
-        return score, "ضعيفة", "#F59E0B"
+        return score, "ضعيفة", "#B45309"
     elif score <= 3:
-        return score, "متوسطة", "#3B82F6"
+        return score, "متوسطة", "#1D4ED8"
     else:
-        return score, "قوية", "#22C55E"
+        return score, "قوية", "#15803D"
 
 
 def score_badge(score: float | None) -> str:
