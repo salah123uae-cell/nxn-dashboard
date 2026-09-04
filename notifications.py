@@ -61,19 +61,20 @@ def mark_all_as_read(user_id: int):
 
 
 def render_notification_bell(home_page=None):
-    """يعرض جرس إشعارات احترافي تفاعليًا: أيقونة SVG حقيقية لشكل جرس (مرسومة
-    مباشرة كعنصر HTML، بدون الاعتماد على تقنية CSS mask-image غير الموثوقة
-    عبر المتصفحات المختلفة)، فوق زر دائري شفاف يتولى فعل الضغط والتنقّل.
-    شارة عدّاد حمراء صغيرة بأعلى الزاوية تنبض بحركة خفيفة لما فيه إشعارات
-    غير مقروءة، لجذب الانتباه بدون إزعاج. يظهر أعلى كل صفحة بالنظام.
+    """يعرض مؤشر إشعارات دائري بنفس تصميم زر تبديل اللغة تمامًا (نفس التدرّج
+    الأخضر، نفس الظل، نفس تأثير التحويم البنفسجي-الأزرق) — فقط بشكل دائري
+    بدل مستطيل الحواف، وبجانب زر اللغة مباشرة. رقم الإشعارات غير المقروءة
+    يظهر كنص الزر نفسه. يظهر أعلى كل صفحة بالنظام، مو بس الرئيسية. عند
+    الضغط عليه، ينتقل المستخدم مباشرة للصفحة الرئيسية حيث تظهر بطاقات
+    الإشعارات الكاملة الملوّنة.
     home_page: كائن st.Page الفعلي (وليس نص المسار) — مطلوب هنا تحديدًا لأن
     النظام يبني التنقّل يدويًا عبر st.navigation()+st.Page()، و st.switch_page()
     لا يتعرّف بشكل موثوق على مسار نصي بهذا النمط، فنمرّر الكائن نفسه بدلًا من ذلك.
     ملاحظة تقنية: نستخدم st.container(key=...) (موثّق رسميًا من Streamlit
-    لهذا الغرض بالضبط) لتنسيق الزر بدقة، ونضع أيقونة SVG حقيقية فوقه بموضع
-    مطلق (pointer-events:none حتى يمرّ الضغط للزر تحتها مباشرة)."""
+    لهذا الغرض بالضبط) لتنسيق الزر بدقة."""
     import streamlit as st
     from auth import current_user
+    from branding import BRAND_LIME, BRAND_PURPLE, BRAND_BLUE
 
     user = current_user()
     if not user:
@@ -81,83 +82,48 @@ def render_notification_bell(home_page=None):
 
     unread = get_unread_count(user["id"])
     has_unread = unread > 0
-    bell_color = "#1E22AA" if has_unread else "#6B7280"
-    ring_color = "#44D62C" if has_unread else "#E3E4F6"
-    badge_display = str(unread) if unread < 100 else "99+"
+    label = str(unread) if unread < 100 else "99+"
 
     st.markdown(
         f"""
         <style>
-        @keyframes nxn-bell-swing {{
-            0%, 100% {{ transform: rotate(0deg); }}
-            20% {{ transform: rotate(-12deg); }}
-            40% {{ transform: rotate(10deg); }}
-            60% {{ transform: rotate(-6deg); }}
-            80% {{ transform: rotate(3deg); }}
-        }}
         @keyframes nxn-badge-pulse {{
-            0%, 100% {{ box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.55); }}
-            70% {{ box-shadow: 0 0 0 7px rgba(185, 28, 28, 0); }}
+            0%, 100% {{ box-shadow: 0 4px 14px rgba(68, 214, 44, 0.28); }}
+            70% {{ box-shadow: 0 4px 14px rgba(68, 214, 44, 0.28), 0 0 0 7px rgba(68, 214, 44, 0); }}
         }}
         .st-key-nxn_bell_container {{
-            position: relative;
             display: flex; justify-content: center;
-            width: 44px; height: 44px;
         }}
         .st-key-nxn_bell_container button {{
-            background: white !important;
-            border: 2px solid {ring_color} !important;
+            background: linear-gradient(135deg, {BRAND_LIME} 0%, #2FA81D 100%) !important;
+            color: white !important;
+            border: none !important;
             border-radius: 50% !important;
             width: 44px !important; height: 44px !important;
             min-width: 44px !important;
             padding: 0 !important;
-            box-shadow: 0 2px 10px rgba(30,34,170,0.14) !important;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
-        }}
-        .st-key-nxn_bell_container button p {{
-            font-size: 0 !important;
-        }}
-        .st-key-nxn_bell_container button:hover {{
-            transform: translateY(-2px);
-            border-color: {bell_color} !important;
-            box-shadow: 0 8px 18px rgba(30,34,170,0.22) !important;
-        }}
-        .nxn-bell-icon {{
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            display: flex; align-items: center; justify-content: center;
-            pointer-events: none;
-        }}
-        .nxn-bell-icon svg {{
-            width: 20px; height: 20px;
-            animation: {"nxn-bell-swing 1.8s ease-in-out infinite" if has_unread else "none"};
-            transform-origin: top center;
-        }}
-        .nxn-bell-badge {{
-            position: absolute; top: -4px; right: -4px;
-            min-width: 18px; height: 18px; padding: 0 4px;
-            background: #B91C1C; color: white;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
-            font-size: 10px; font-weight: 800; line-height: 18px; text-align: center;
-            border-radius: 9px; box-shadow: 0 0 0 2px white;
-            pointer-events: none;
+            box-shadow: 0 4px 14px rgba(68, 214, 44, 0.28) !important;
+            transition: all 0.2s ease !important;
             animation: {"nxn-badge-pulse 2s ease-in-out infinite" if has_unread else "none"};
         }}
+        .st-key-nxn_bell_container button p {{
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            color: white !important;
+            margin: 0 !important;
+        }}
+        .st-key-nxn_bell_container button:hover {{
+            background: linear-gradient(135deg, {BRAND_PURPLE} 0%, {BRAND_BLUE} 100%) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 22px rgba(150, 60, 189, 0.32) !important;
+        }}
         </style>
-        <div class="nxn-bell-icon">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 3C9.5 3 7.5 5 7.5 7.5V11C7.5 11.8 7.15 12.55 6.55 13.1L5 14.5V16H19V14.5L17.45 13.1C16.85 12.55 16.5 11.8 16.5 11V7.5C16.5 5 14.5 3 12 3Z"
-                      stroke="{bell_color}" stroke-width="1.8" stroke-linejoin="round" fill="{bell_color}22"/>
-                <path d="M9.5 18.5C9.8 19.6 10.8 20.5 12 20.5C13.2 20.5 14.2 19.6 14.5 18.5"
-                      stroke="{bell_color}" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-            {f'<div class="nxn-bell-badge">{badge_display}</div>' if has_unread else ''}
-        </div>
         """,
         unsafe_allow_html=True,
     )
     with st.container(key="nxn_bell_container"):
         clicked = st.button(
-            " ", key="nxn_notif_bell_btn",
+            label, key="nxn_notif_bell_btn",
             help="الإشعارات" if unread else "لا توجد إشعارات جديدة",
         )
     if clicked:
