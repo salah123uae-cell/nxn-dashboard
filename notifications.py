@@ -61,16 +61,18 @@ def mark_all_as_read(user_id: int):
 
 
 def render_notification_bell(home_page=None):
-    """يعرض جرس إشعارات تفاعليًا (شكل SVG أنيق + شارة عدّاد ملوّنة، بدون إيموجي)
-    أعلى كل صفحة — مو بس بالصفحة الرئيسية. عند الضغط عليه، ينتقل المستخدم مباشرة
-    للصفحة الرئيسية حيث تظهر بطاقات الإشعارات الكاملة الملوّنة. الشارة تنبض
-    بحركة خفيفة لما فيه إشعارات غير مقروءة، لجذب الانتباه بدون إزعاج.
+    """يعرض مؤشر إشعارات دائري ملوّن (رقم العدّاد نفسه ظاهر داخل الدائرة، بدون
+    محاولة رسم شكل جرس عبر CSS mask-image بصيغة SVG — تلك التقنية غير موثوقة
+    عبر كل المتصفحات وتُنتج نقطة مشوّهة بدل شكل واضح). يظهر أعلى كل صفحة
+    بالنظام، مو بس الرئيسية. عند الضغط عليه، ينتقل المستخدم مباشرة للصفحة
+    الرئيسية حيث تظهر بطاقات الإشعارات الكاملة الملوّنة. الدائرة تنبض بحركة
+    خفيفة لما فيه إشعارات غير مقروءة، لجذب الانتباه بدون إزعاج.
     home_page: كائن st.Page الفعلي (وليس نص المسار) — مطلوب هنا تحديدًا لأن
     النظام يبني التنقّل يدويًا عبر st.navigation()+st.Page()، و st.switch_page()
     لا يتعرّف بشكل موثوق على مسار نصي بهذا النمط، فنمرّر الكائن نفسه بدلًا من ذلك.
-    ملاحظة تقنية: نستخدم st.container(key=...) بدل أسلوب "علامة + شقيق مجاور"
-    بالـ CSS، لأن الأخير هشّ ويعتمد على افتراض دقيق لبنية DOM الداخلية
-    (قد يفشل بصمت لو أضافت Streamlit طبقة تغليف إضافية حول st.markdown)."""
+    ملاحظة تقنية: نستخدم st.container(key=...) (موثّق رسميًا من Streamlit
+    لهذا الغرض بالضبط) لتنسيق الزر بدقة، بدل أساليب CSS هشّة تعتمد على تخمين
+    بنية DOM الداخلية."""
     import streamlit as st
     from auth import current_user
 
@@ -80,62 +82,41 @@ def render_notification_bell(home_page=None):
 
     unread = get_unread_count(user["id"])
     has_unread = unread > 0
-    badge_color = "#B91C1C" if has_unread else "#4B5563"
-    bell_color = "#44D62C" if has_unread else "#9CA3AF"
-    count_display = str(unread) if unread < 100 else "99+"
+    bell_color = "#B91C1C" if has_unread else "#9CA3AF"
+    label = str(unread) if unread < 100 else "99+"
 
     st.markdown(
         f"""
         <style>
-        @keyframes nxn-bell-pulse {{
-            0%, 100% {{ transform: scale(1); }}
-            50% {{ transform: scale(1.12); }}
-        }}
         @keyframes nxn-badge-pulse {{
-            0%, 100% {{ box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.55); }}
-            70% {{ box-shadow: 0 0 0 8px rgba(185, 28, 28, 0); }}
+            0%, 100% {{ box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.5); }}
+            70% {{ box-shadow: 0 0 0 7px rgba(185, 28, 28, 0); }}
         }}
         .st-key-nxn_bell_container {{
             display: flex; justify-content: center;
         }}
         .st-key-nxn_bell_container button {{
-            position: relative;
-            background: white !important;
-            border: 2px solid {bell_color} !important;
+            background: {bell_color} !important;
+            color: white !important;
+            border: none !important;
             border-radius: 50% !important;
-            width: 42px !important; height: 42px !important;
-            min-width: 42px !important;
+            width: 38px !important; height: 38px !important;
+            min-width: 38px !important;
             padding: 0 !important;
-            box-shadow: 0 2px 8px rgba(30,34,170,0.12) !important;
-            transition: all 0.2s ease !important;
+            font-weight: 800 !important;
+            box-shadow: 0 2px 8px rgba(30,34,170,0.18) !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+            animation: {"nxn-badge-pulse 2s ease-in-out infinite" if has_unread else "none"};
         }}
         .st-key-nxn_bell_container button p {{
-            font-size: 0 !important;
-        }}
-        .st-key-nxn_bell_container button::before {{
-            content: "";
-            position: absolute; inset: 0; margin: auto;
-            width: 18px; height: 18px;
-            background-color: {bell_color};
-            -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a6 6 0 0 0-6 6v3.09c0 .49-.2.96-.55 1.3L4 14v2h16v-2l-1.45-1.61a1.8 1.8 0 0 1-.55-1.3V8a6 6 0 0 0-6-6zm0 20a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22z"/></svg>');
-            mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a6 6 0 0 0-6 6v3.09c0 .49-.2.96-.55 1.3L4 14v2h16v-2l-1.45-1.61a1.8 1.8 0 0 1-.55-1.3V8a6 6 0 0 0-6-6zm0 20a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22z"/></svg>');
-            -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-            -webkit-mask-position: center; mask-position: center;
-            animation: {"nxn-bell-pulse 2s ease-in-out infinite" if has_unread else "none"};
+            font-size: 14px !important;
+            font-weight: 800 !important;
+            margin: 0 !important;
+            color: white !important;
         }}
         .st-key-nxn_bell_container button:hover {{
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(30,34,170,0.2) !important;
-        }}
-        .st-key-nxn_bell_container button:after {{
-            content: "{count_display if has_unread else ''}";
-            position: absolute; top: -6px; right: -6px;
-            background: {badge_color}; color: white;
-            font-size: 10px; font-weight: 800;
-            min-width: 18px; height: 18px; line-height: 18px;
-            border-radius: 9px; padding: 0 4px;
-            box-shadow: 0 0 0 2px white;
-            animation: {"nxn-badge-pulse 2s ease-in-out infinite" if has_unread else "none"};
+            transform: translateY(-2px) scale(1.06);
+            box-shadow: 0 6px 16px rgba(30,34,170,0.3) !important;
         }}
         </style>
         """,
@@ -143,7 +124,7 @@ def render_notification_bell(home_page=None):
     )
     with st.container(key="nxn_bell_container"):
         clicked = st.button(
-            " ", key="nxn_notif_bell_btn",
+            label, key="nxn_notif_bell_btn",
             help="الإشعارات" if unread else "لا توجد إشعارات جديدة",
         )
     if clicked:
