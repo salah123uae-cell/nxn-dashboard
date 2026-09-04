@@ -1,6 +1,6 @@
 """
 منطق تسجيل الدخول، تشفير كلمات المرور، وإدارة الأدوار/الصلاحيات.
-الأدوار: owner (مالك) > manager (مدير) > auditor (مدقق) > branch (فرع) > viewer (مشاهد)
+الأدوار: owner (مالك) > manager (مدير) > auditor (موظف التدقيق) > branch (مدير الفرع) > viewer (مشاهد)
 """
 import json
 import bcrypt
@@ -18,8 +18,8 @@ ROLES = ["owner", "manager", "auditor", "branch", "viewer"]
 ROLE_LABELS_AR = {
     "owner": "مالك النظام",
     "manager": "مدير",
-    "auditor": "مدقق",
-    "branch": "فرع",
+    "auditor": "موظف التدقيق",
+    "branch": "مدير الفرع",
     "viewer": "مشاهد",
 }
 
@@ -349,3 +349,4 @@ def render_logout_sidebar():
         if st.button(t("logout"), key="global_logout_btn", use_container_width=True):
             logout()
             st.rerun()
+
