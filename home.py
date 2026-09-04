@@ -5,8 +5,8 @@ from auth import (
 )
 from database import init_db, get_session
 from models import User, Credential, Branch, ChecklistVersion, AuditSection, AuditQuestion, Audit, CorrectiveAction
-from branding import render_logo, apply_theme, render_hero_banner
-from utils import password_strength
+from branding import render_logo, apply_theme, render_hero_banner, BRAND_BLUE
+from utils import password_strength, NOTIFICATION_TYPE_COLORS
 from i18n import t, get_lang
 
 lang = get_lang()
@@ -119,6 +119,48 @@ if user:
     welcome_text = t("welcome_msg", name=user["name"], role=role_label).replace("**", "")
     render_hero_banner(title=welcome_text, subtitle=t("nav_hint"))
 
+    # ---------- الإشعارات (بأعلى الصفحة، بشكل بطاقات ملوّنة حسب نوع الإشعار
+    # بدل قائمة نصية داخل عنصر قابل للطي — لجعلها أوضح وأول شي تلفت الانتباه) ----------
+    from notifications import get_notifications, get_unread_count, mark_as_read, mark_all_as_read
+    _unread = get_unread_count(user["id"])
+    _notifs = get_notifications(user["id"])
+
+    if _notifs:
+        nh1, nh2 = st.columns([4, 1])
+        nh1.markdown(f"##### {t('notifications_title')}" + (f" ({_unread})" if _unread else ""))
+        if _unread:
+            if nh2.button(t("mark_all_read_btn"), key="mark_all_read", use_container_width=True):
+                mark_all_as_read(user["id"])
+                st.rerun()
+
+        for n in _notifs:
+            is_unread = n["read_at"] is None
+            accent = NOTIFICATION_TYPE_COLORS.get(n["type"], "#4B5563")
+            bg = f"{accent}14" if is_unread else "#FFFFFF"
+            border_side = "border-left" if lang == "en" else "border-right"
+
+            nc1, nc2 = st.columns([6, 1])
+            with nc1:
+                st.markdown(
+                    f"""
+                    <div style="
+                        background:{bg}; {border_side}: 4px solid {accent};
+                        border-radius:12px; padding:12px 18px; margin-bottom:8px;
+                        box-shadow: 0 2px 10px rgba(30,34,170,0.06);
+                    ">
+                        <div style="font-weight:{'700' if is_unread else '500'}; color:{BRAND_BLUE}; font-size:15px;">{n['title']}</div>
+                        <div style="color:#5B5F73; font-size:13px; margin-top:4px; line-height:1.5;">{n['body']}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            with nc2:
+                if is_unread:
+                    if st.button(t("mark_read_btn"), key=f"read_{n['id']}", use_container_width=True):
+                        mark_as_read(n["id"])
+                        st.rerun()
+        st.divider()
+
     # ---------- داشبورد حي: مؤشرات لحظية مباشرة أعلى الصفحة الرئيسية ----------
     with get_session() as _s:
         _total_branches = _s.query(Branch).filter(Branch.status == "active").count()
@@ -135,30 +177,6 @@ if user:
     lc2.metric(t('total_audits'), _total_audits)
     lc3.metric(t('open_corrective_actions'), _open_actions)
     lc4.metric(t('avg_score'), f"{_avg_score}%")
-    st.divider()
-
-    # ---------- الإشعارات ----------
-    from notifications import get_notifications, get_unread_count, mark_as_read, mark_all_as_read
-    _unread = get_unread_count(user["id"])
-    _notif_title = t("notifications_title") + (f" ({_unread})" if _unread else "")
-    with st.expander(_notif_title, expanded=bool(_unread)):
-        _notifs = get_notifications(user["id"])
-        if not _notifs:
-            st.caption(t("no_notifications"))
-        else:
-            if _unread and st.button(t("mark_all_read_btn"), key="mark_all_read"):
-                mark_all_as_read(user["id"])
-                st.rerun()
-            for n in _notifs:
-                nc1, nc2 = st.columns([5, 1])
-                is_unread = n["read_at"] is None
-                prefix = "**" if is_unread else ""
-                nc1.markdown(f"{prefix}{n['title']}{prefix}  \n{n['body']}")
-                if is_unread:
-                    if nc2.button(t("mark_read_btn"), key=f"read_{n['id']}"):
-                        mark_as_read(n["id"])
-                        st.rerun()
-                st.divider()
     st.divider()
 else:
     tab_login, tab_signup, tab_forgot = st.tabs([
