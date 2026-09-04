@@ -361,16 +361,29 @@ def t(key: str, **kwargs) -> str:
     return text
 
 
-def language_switcher():
+def language_switcher(home_page=None):
     """يعرض زرًا تفاعليًا واحدًا أعلى يمين المحتوى لتبديل اللغة فورًا (عربي/إنجليزي)
     بضغطة واحدة، بدل القائمة المنسدلة القديمة — يتبع نفس تصميم الأزرار المتدرّج
-    الملوّن المستخدم بباقي صفحات النظام."""
+    الملوّن المستخدم بباقي صفحات النظام. يعرض أيضًا جرس الإشعارات بجانبه مباشرة
+    (لو المستخدم مسجّل دخول) بنفس الصف — يظهر على كل صفحة بالنظام، مو بس الرئيسية.
+    home_page: كائن st.Page للصفحة الرئيسية، يُمرَّر لجرس الإشعارات ليستخدمه
+    بالتنقّل الموثوق عند الضغط عليه."""
     current = get_lang()
     target = "en" if current == "ar" else "ar"
     target_label = "English" if target == "en" else "العربية"
 
-    _spacer, corner = st.columns([5, 1])
-    with corner:
+    from auth import current_user
+    is_logged_in = current_user() is not None
+
+    if is_logged_in:
+        _spacer, bell_col, lang_col = st.columns([5, 1, 1])
+        with bell_col:
+            from notifications import render_notification_bell
+            render_notification_bell(home_page)
+    else:
+        _spacer, lang_col = st.columns([5, 1])
+
+    with lang_col:
         if st.button(target_label, key="lang_toggle_btn", use_container_width=True):
             st.session_state["lang"] = target
             st.rerun()
