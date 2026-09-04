@@ -366,6 +366,10 @@ def language_switcher(home_page=None):
     بضغطة واحدة، بدل القائمة المنسدلة القديمة — يتبع نفس تصميم الأزرار المتدرّج
     الملوّن المستخدم بباقي صفحات النظام. يعرض أيضًا جرس الإشعارات بجانبه مباشرة
     (لو المستخدم مسجّل دخول) بنفس الصف — يظهر على كل صفحة بالنظام، مو بس الرئيسية.
+    نضع الصف بالكامل داخل st.container(key=...) ونجبر توسيطًا عموديًا دقيقًا
+    (align-items: center) بينهما، لأن الجرس الدائري وزر اللغة المستطيل لهما
+    ارتفاعات محسوبة مختلفة قليلًا بشكل طبيعي، وبدون هذا التوسيط يظهران بمستويين
+    مختلفين رغم إنهما بنفس الصف.
     home_page: كائن st.Page للصفحة الرئيسية، يُمرَّر لجرس الإشعارات ليستخدمه
     بالتنقّل الموثوق عند الضغط عليه."""
     current = get_lang()
@@ -375,16 +379,31 @@ def language_switcher(home_page=None):
     from auth import current_user
     is_logged_in = current_user() is not None
 
-    if is_logged_in:
-        _spacer, bell_col, lang_col = st.columns([5, 1, 1])
-        with bell_col:
-            from notifications import render_notification_bell
-            render_notification_bell(home_page)
-    else:
-        _spacer, lang_col = st.columns([5, 1])
+    st.markdown(
+        """
+        <style>
+        .st-key-nxn_topbar_row [data-testid="stHorizontalBlock"] {
+            align-items: center !important;
+        }
+        .st-key-nxn_topbar_row [data-testid="column"] {
+            display: flex !important;
+            align-items: center !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    with st.container(key="nxn_topbar_row"):
+        if is_logged_in:
+            _spacer, bell_col, lang_col = st.columns([5, 1, 1])
+            with bell_col:
+                from notifications import render_notification_bell
+                render_notification_bell(home_page)
+        else:
+            _spacer, lang_col = st.columns([5, 1])
 
-    with lang_col:
-        if st.button(target_label, key="lang_toggle_btn", use_container_width=True):
-            st.session_state["lang"] = target
-            st.rerun()
+        with lang_col:
+            if st.button(target_label, key="lang_toggle_btn", use_container_width=True):
+                st.session_state["lang"] = target
+                st.rerun()
 
