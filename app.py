@@ -121,6 +121,7 @@ if _is_logged_in:
         st.Page("app_pages/9_AI_Assistant.py", title=t("nav_ai"), url_path="AI_Assistant"),
         st.Page("app_pages/10_Backup.py", title=t("nav_backup"), url_path="Backup"),
         st.Page("app_pages/11_Help.py", title=t("nav_help"), url_path="Help"),
+        st.Page("app_pages/12_Automation.py", title=t("nav_automation"), url_path="Automation"),
     ]
 else:
     pages = [home_page]
