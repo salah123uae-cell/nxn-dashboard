@@ -89,9 +89,14 @@ render_sidebar_logo()
 # الثابت بكل صفحات النظام دون تكرار الكود بكل ملف).
 render_dev_credit()
 
+# نبني صفحة الرئيسية هنا (قبل استدعاء تبديل اللغة) لأن جرس الإشعارات يحتاج
+# كائن الصفحة نفسه (وليس مجرد نص المسار) للتنقّل الموثوق عبر st.switch_page().
+home_page = st.Page("home.py", title=t("nav_home"), url_path="", default=True)
+
 # تبديل اللغة يُستدعى هنا (بالموجّه) بدل كل صفحة على حدة، ليظهر بنفس الموضع
-# الثابت أعلى الشاشة بكل صفحات النظام دون تكرار الكود.
-language_switcher()
+# الثابت أعلى الشاشة بكل صفحات النظام دون تكرار الكود. يعرض أيضًا جرس
+# الإشعارات بجانبه (لو مسجّل دخول) — يظهر بكل صفحة بالنظام.
+language_switcher(home_page=home_page)
 
 # ---------- تحذير حرج: لو قاعدة البيانات الدائمة (Postgres) غير متصلة فعليًا،
 # النظام يعمل على تخزين مؤقت تُمسح بياناته بالكامل مع كل إعادة تشغيل للخادم.
@@ -101,8 +106,6 @@ if _is_logged_in:
     _user = current_user()
     if _user and _user["role"] == "owner" and not is_persistent_db_configured():
         st.error(t("db_not_persistent_warning"), icon=None)
-
-home_page = st.Page("home.py", title=t("nav_home"), url_path="", default=True)
 
 if _is_logged_in:
     pages = [
