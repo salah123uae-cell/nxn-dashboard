@@ -9,15 +9,27 @@ from database import get_session
 from models import Notification, User
 
 
-def create_notification(user_email: str, ntype: str, title: str, body: str, link: str | None = None):
+def create_notification(user_email: str, ntype: str, title: str, body: str,
+                        link: str | None = None, dedupe_key: str | None = None,
+                        session=None) -> bool:
     """ينشئ إشعارًا لمستخدم عبر بريده الإلكتروني (يبحث عن معرّفه أولًا)."""
-    with get_session() as s:
+    def _create(s):
         user = s.query(User).filter(User.email == user_email.strip().lower()).first()
-        if not user:
-            return
+        if not user or not user.active:
+            return False
+        if dedupe_key and s.query(Notification.id).filter(Notification.dedupe_key == dedupe_key).first():
+            return False
         s.add(Notification(
             user_id=user.id, type=ntype, title=title, body=body, link=link,
+            dedupe_key=dedupe_key,
         ))
+        s.flush()
+        return True
+
+    if session is not None:
+        return _create(session)
+    with get_session() as s:
+        return _create(s)
 
 
 def get_notifications(user_id: int, limit: int = 15) -> list[dict]:
@@ -136,4 +148,3 @@ def render_notification_bell(home_page=None):
             st.switch_page(home_page)
         else:
             st.switch_page("home.py")
-

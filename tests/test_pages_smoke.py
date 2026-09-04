@@ -14,7 +14,7 @@ PAGES = [
     "app_pages/1_Dashboard.py", "app_pages/2_Branches.py", "app_pages/3_Checklist.py",
     "app_pages/4_Audits.py", "app_pages/5_Corrective_Actions.py", "app_pages/6_Users.py",
     "app_pages/7_Reports.py", "app_pages/8_Audit_Log.py", "app_pages/9_AI_Assistant.py",
-    "app_pages/10_Backup.py", "app_pages/11_Help.py",
+    "app_pages/10_Backup.py", "app_pages/11_Help.py", "app_pages/12_Automation.py",
 ]
 
 ROLES = [

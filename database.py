@@ -12,12 +12,15 @@
 """
 import os
 import tempfile
+import logging
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 
 from models import Base
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -111,6 +114,7 @@ def _migrate_add_missing_columns():
     table_columns_to_add = {
         "users": [("employee_number", "VARCHAR")],
         "corrective_actions": [("overdue_notified_at", "TIMESTAMP")],
+        "notifications": [("dedupe_key", "VARCHAR")],
     }
     for table_name, columns in table_columns_to_add.items():
         if table_name not in inspector.get_table_names():
@@ -123,7 +127,17 @@ def _migrate_add_missing_columns():
                         conn.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_type}"))
                         conn.commit()
                 except Exception:
-                    pass
+                    logger.exception("Database migration failed: %s.%s", table_name, col_name)
+                    raise
+    try:
+        with engine.begin() as conn:
+            conn.execute(text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS notifications_dedupe_key_uq "
+                "ON notifications (dedupe_key)"
+            ))
+    except Exception:
+        logger.exception("Database migration failed: notifications dedupe index")
+        raise
 
 
 @contextmanager
@@ -138,4 +152,3 @@ def get_session():
         raise
     finally:
         session.close()
-

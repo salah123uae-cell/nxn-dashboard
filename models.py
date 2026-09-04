@@ -239,10 +239,14 @@ class Notification(Base):
     title = Column(String, nullable=False)
     body = Column(Text, nullable=False)
     link = Column(String, nullable=True)
+    dedupe_key = Column(String, nullable=True)
     read_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, nullable=False, default=now)
 
-    __table_args__ = (Index("notifications_user_read_idx", "user_id", "read_at"),)
+    __table_args__ = (
+        Index("notifications_user_read_idx", "user_id", "read_at"),
+        UniqueConstraint("dedupe_key", name="notifications_dedupe_key_uq"),
+    )
 
 
 class AuditLog(Base):
@@ -291,4 +295,3 @@ class PasswordResetRequest(Base):
     created_at = Column(DateTime, nullable=False, default=now)
 
     __table_args__ = (Index("password_reset_requests_status_idx", "status"),)
-
