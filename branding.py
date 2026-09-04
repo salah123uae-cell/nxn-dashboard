@@ -322,6 +322,28 @@ def apply_theme(direction: str = "rtl"):
             color: white;
         }}
 
+        /* ---------- احتياطات الشاشات الضيقة جدًا (الجوال) — نقلّص المسافات
+           والخطوط قليلًا بدل ما تنكسر أو تفيض عناصر القائمة الجانبية والبطاقات
+           خارج حدود الشاشة على أجهزة بعرض أقل من 480px. ---------- */
+        @media (max-width: 480px) {{
+            [data-testid="stSidebar"] a,
+            [data-testid="stSidebarNav"] a {{
+                padding: 10px 12px !important;
+                font-size: 14px !important;
+                margin: 2px 6px !important;
+            }}
+            [data-testid="stMetric"] {{
+                padding: 12px 14px !important;
+            }}
+            .block-container {{
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }}
+            div[data-testid="stDataFrame"] {{
+                font-size: 13px !important;
+            }}
+        }}
+
         /* ---------- تبديل اللغة: قائمة منسدلة صغيرة أنيقة، تُنسّق عبر
            الأسلوب العام للقوائم المنسدلة أعلاه (بدون تثبيت CSS معقّد قد
            يتعارض مع عناصر أخرى أعلى الصفحة). ---------- */
