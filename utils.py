@@ -44,6 +44,7 @@ AUDIT_ACTION_COLORS = {
 NOTIFICATION_TYPE_COLORS = {
     "audit_assigned": "#1D4ED8",
     "corrective_action_created": "#B45309",
+    "corrective_action_overdue": "#B91C1C",
     "signup_approved": "#15803D",
     "reset_approved": "#15803D",
 }
