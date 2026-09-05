@@ -279,6 +279,7 @@ TRANSLATIONS = {
     "nav_ai": {"ar": "المساعد الذكي", "en": "AI Assistant"},
     "nav_backup": {"ar": "النسخ الاحتياطي", "en": "Backup"},
     "nav_help": {"ar": "دليل الاستخدام", "en": "User Guide"},
+    "nav_automation": {"ar": "مركز الأتمتة", "en": "Automation Center"},
 
     # ---------- تسجيل الدخول: تبويبات وإنشاء حساب واستعادة كلمة المرور ----------
     "login_tab_login": {"ar": "تسجيل الدخول", "en": "Log In"},
@@ -338,6 +339,45 @@ TRANSLATIONS = {
               "restart. Please verify DATABASE_URL is correctly set under "
               "Manage app → Settings → Secrets immediately.",
     },
+
+    # ---------- مركز الأتمتة ----------
+    "automation_title": {"ar": "مركز الأتمتة", "en": "Automation Center"},
+    "automation_caption": {
+        "ar": "نظرة شاملة على كل ما يشتغل تلقائيًا بالنظام دون تدخل يدوي، بالإضافة لأتمتة تنبيهات الإجراءات المتأخرة.",
+        "en": "A full view of everything that runs automatically without manual intervention, plus overdue-action alert automation.",
+    },
+    "automation_active_rules_title": {"ar": "قواعد الأتمتة النشطة حاليًا", "en": "Currently Active Automation Rules"},
+    "automation_rule_lockout": {"ar": "قفل الحساب التلقائي", "en": "Automatic Account Lockout"},
+    "automation_rule_lockout_desc": {
+        "ar": "يُقفل الحساب مؤقتًا (15 دقيقة) بعد 5 محاولات دخول فاشلة متتالية — بدون أي تدخل إداري.",
+        "en": "The account is temporarily locked (15 minutes) after 5 consecutive failed login attempts — with no admin intervention.",
+    },
+    "automation_rule_corrective": {"ar": "إنشاء إجراء تصحيحي تلقائي", "en": "Automatic Corrective Action Creation"},
+    "automation_rule_corrective_desc": {
+        "ar": "أي إجابة \\"غير متوافق\\" بأي تدقيق تُنشئ إجراءً تصحيحيًا فورًا، بدون أي خطوة يدوية إضافية.",
+        "en": "Any \\"non-compliant\\" answer on any audit instantly creates a corrective action, with no extra manual step.",
+    },
+    "automation_rule_notifications": {"ar": "إشعارات تلقائية", "en": "Automatic Notifications"},
+    "automation_rule_notifications_desc": {
+        "ar": "يُرسل إشعار فوري تلقائيًا عند: إسناد تدقيق، إنشاء إجراء تصحيحي، قبول حساب جديد، أو الموافقة على استعادة كلمة مرور.",
+        "en": "An instant notification is sent automatically when: an audit is assigned, a corrective action is created, a new account is approved, or a password reset is approved.",
+    },
+    "automation_overdue_section_title": {"ar": "أتمتة تنبيه الإجراءات المتأخرة", "en": "Overdue Action Alert Automation"},
+    "automation_overdue_desc": {
+        "ar": "يفحص هذا القسم كل الإجراءات التصحيحية اللي تجاوزت موعد استحقاقها ولسا غير مكتملة، "
+              "ويرسل تلقائيًا إشعارًا لمدير الفرع المسؤول ولمالك النظام — مرة واحدة فقط لكل إجراء "
+              "(بدون تكرار مزعج). الفحص يشتغل تلقائيًا كل ما تفتحين هذي الصفحة، وتقدرين كمان "
+              "تشغّلينه يدويًا بالزر أدناه.",
+        "en": "This section checks all corrective actions that have passed their due date and are "
+              "still incomplete, and automatically notifies the responsible branch manager and the "
+              "system owner — only once per action (no repeated spam). The check runs automatically "
+              "every time you open this page, and you can also trigger it manually with the button below.",
+    },
+    "automation_currently_overdue": {"ar": "متأخرة حاليًا", "en": "Currently Overdue"},
+    "automation_total_notified": {"ar": "إجمالي المُنبَّه عنها", "en": "Total Ever Notified"},
+    "automation_run_now_btn": {"ar": "تشغيل الفحص الآن", "en": "Run Check Now"},
+    "automation_run_result": {"ar": "تم إرسال {n} إشعار تلقائي لإجراءات متأخرة جديدة.", "en": "{n} automatic notification(s) sent for newly overdue actions."},
+    "automation_run_result_none": {"ar": "لا توجد إجراءات متأخرة جديدة تحتاج تنبيهًا حاليًا.", "en": "No newly overdue actions need alerting right now."},
 }
 
 
