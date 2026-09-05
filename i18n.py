@@ -446,4 +446,3 @@ def language_switcher(home_page=None):
             if st.button(target_label, key="lang_toggle_btn", use_container_width=True):
                 st.session_state["lang"] = target
                 st.rerun()
-
